@@ -8,19 +8,31 @@ const InputSchema = z.object({
 });
 
 const OpportunitySchema = z.object({
+  themes: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+    }),
+  ),
   opportunities: z.array(
     z.object({
       title: z.string(),
-      summary: z.string(),
-      theme: z.string(),
-      severity: z.enum(["low", "medium", "high", "critical"]),
-      score: z.number(),
+      problem: z.string(),
+      customer_demand: z.number(),
+      business_impact: z.enum(["low", "medium", "high", "critical"]),
+      business_impact_rationale: z.string(),
+      confidence: z.number(),
+      confidence_rationale: z.string(),
+      recurring_themes: z.array(z.string()),
       evidence_indices: z.array(z.number()),
+      representative_quote_index: z.number(),
     }),
   ),
 });
 
-export type Opportunity = z.infer<typeof OpportunitySchema>["opportunities"][number];
+export type ClusterResult = z.infer<typeof OpportunitySchema>;
+export type Opportunity = ClusterResult["opportunities"][number];
+export type Theme = ClusterResult["themes"][number];
 
 export const clusterFeedback = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => InputSchema.parse(input))
@@ -35,15 +47,27 @@ export const clusterFeedback = createServerFn({ method: "POST" })
       .map((f, i) => `[${i}] ${f.replace(/\s+/g, " ").slice(0, 500)}`)
       .join("\n");
 
-    const prompt = `You are a product manager analyzing raw customer feedback. Cluster the feedback below into distinct product opportunities (problems or requests). For each opportunity:
-- title: short punchy label (max 8 words)
-- summary: 1-2 sentence description of the user problem or ask
-- theme: one of "Bug", "Feature Request", "UX", "Performance", "Pricing", "Onboarding", "Integration", "Other"
-- severity: low | medium | high | critical (impact on users)
-- score: 0-100 priority score based on frequency * severity
-- evidence_indices: array of the [N] indices from the input that support this cluster
+    const prompt = `You are an AI research assistant helping a product manager analyze raw customer feedback.
 
-Return between 3 and 10 opportunities, ranked by score descending. Every feedback item must belong to at most one cluster; skip noise.
+First identify 3-8 recurring themes across the entire dataset (short name + 1-sentence description).
+
+Then extract 3-10 distinct product OPPORTUNITIES (problems or requests). For each opportunity provide:
+- title: short punchy label (max 8 words)
+- problem: 1-2 sentence description of the user problem or ask
+- customer_demand: 0-100, based on how many feedback items support this and how strongly they express it
+- business_impact: low | medium | high | critical — how much this affects customers' ability to succeed with the product
+- business_impact_rationale: 1 sentence explaining the impact rating (what breaks / what's blocked)
+- confidence: 0-100, how confident you are this is a real, well-supported pattern (not noise)
+- confidence_rationale: 1 sentence explaining the confidence (sample size, clarity of signal, consistency)
+- recurring_themes: 1-3 theme names (from the themes list you produced) that this opportunity ties into
+- evidence_indices: array of [N] indices from the input that directly support this opportunity
+- representative_quote_index: the single [N] index that best captures this opportunity in the customer's own words
+
+Rules:
+- Every AI field is an inference the PM will scrutinize — be honest about confidence; don't inflate weak signals.
+- Do NOT estimate engineering effort, strategic importance, or revenue — those are the PM's job.
+- Skip pure noise; not every item must be clustered.
+- Order opportunities by customer_demand descending.
 
 Feedback:
 ${numbered}`;
@@ -54,13 +78,12 @@ ${numbered}`;
         prompt,
         output: Output.object({ schema: OpportunitySchema }),
       });
-      const sorted = [...output.opportunities].sort((a, b) => b.score - a.score);
-      return { opportunities: sorted, feedback: data.feedback };
+      return { ...output, feedback: data.feedback };
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error)) {
         try {
           const parsed = OpportunitySchema.parse(JSON.parse(error.text ?? "{}"));
-          return { opportunities: parsed.opportunities, feedback: data.feedback };
+          return { ...parsed, feedback: data.feedback };
         } catch {
           throw new Error("AI returned malformed output. Try again.");
         }
