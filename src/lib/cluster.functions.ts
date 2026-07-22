@@ -49,12 +49,12 @@ Feedback:
 ${numbered}`;
 
     try {
-      const { experimental_output } = await generateText({
+      const { output } = await generateText({
         model,
         prompt,
-        experimental_output: Output.object({ schema: OpportunitySchema }),
+        output: Output.object({ schema: OpportunitySchema }),
       });
-      const sorted = [...experimental_output.opportunities].sort((a, b) => b.score - a.score);
+      const sorted = [...output.opportunities].sort((a, b) => b.score - a.score);
       return { opportunities: sorted, feedback: data.feedback };
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error)) {
