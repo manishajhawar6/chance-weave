@@ -355,21 +355,27 @@ function UploadScreen({
 }) {
   const [dragging, setDragging] = useState(false);
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-49px)] max-w-4xl flex-col items-center px-6 py-12">
-      <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-primary">
-        <Sparkles className="h-3.5 w-3.5" />
-        Evidence-backed prioritization
+    <div className="mx-auto flex min-h-[calc(100vh-57px)] max-w-5xl flex-col items-center px-6 pb-24 pt-16 sm:pt-24">
+      <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border/70 bg-surface/70 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground shadow-elevate-1 backdrop-blur">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/50" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+        </span>
+        Prism · for product managers
       </div>
-      <h1 className="text-center text-4xl font-semibold tracking-tight sm:text-5xl">
-        Prioritize what to build next
-        <br />
-        with <span className="text-primary">evidence</span>, not intuition.
+
+      <h1 className="text-balance text-center text-[44px] font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+        Turn customer conversations
+        <br className="hidden sm:block" />{" "}
+        into <span className="bg-gradient-to-r from-primary to-[oklch(0.66_0.2_285)] bg-clip-text text-transparent">confident</span> product decisions.
       </h1>
-      <p className="mt-5 max-w-2xl text-center text-base text-muted-foreground">
-        AI organizes customer demand, business signals, and supporting quotes into a comparison
-        workspace — so the roadmap decision you take into the next leadership meeting is one you
-        can defend line by line.
+      <p className="mt-6 max-w-xl text-balance text-center text-[15px] leading-relaxed text-muted-foreground sm:text-base">
+        Prism reads scattered customer conversations, surfaces the opportunities hiding inside, and
+        hands you the evidence to prioritize with conviction. AI synthesizes. You decide.
       </p>
+
+      {/* Transformation strip — the product promise in five seconds */}
+      <TransformationStrip />
 
       <label
         onDragOver={(e) => {
@@ -384,25 +390,19 @@ function UploadScreen({
           if (file) onFile(file);
         }}
         className={cn(
-          "mt-10 flex w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-10 transition-colors",
-          dragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
+          "group mt-10 flex w-full max-w-2xl cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-10 text-center transition-all",
+          dragging
+            ? "border-primary/70 bg-primary/[0.04] shadow-glow"
+            : "border-border/70 bg-surface/60 hover:border-primary/40 hover:bg-surface/80",
         )}
       >
-        <div className="rounded-full bg-primary/10 p-3">
-          <Upload className="h-6 w-6 text-primary" />
+        <div className="rounded-xl bg-primary/10 p-3 ring-1 ring-primary/15 transition-transform group-hover:scale-105">
+          <Upload className="h-5 w-5 text-primary" />
         </div>
-        <p className="text-sm font-medium">
-          Upload customer conversations to build evidence-backed product priorities
-        </p>
+        <p className="text-sm font-medium">Drop a CSV of customer conversations</p>
         <p className="text-xs text-muted-foreground">
-          Drop a CSV or click to browse · Auto-detects the feedback column · First 200 rows
+          Auto-detects the feedback column · First 200 rows · ~15s analysis
         </p>
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-3 text-[11px] text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <Loader2 className="h-3 w-3" />
-            Typical analysis time: ~15 seconds
-          </span>
-        </div>
         <input
           type="file"
           accept=".csv,text/csv"
@@ -415,59 +415,25 @@ function UploadScreen({
         />
       </label>
 
-      {/* Sample CSV preview — makes the interaction tangible */}
-      <div className="mt-4 w-full overflow-hidden rounded-lg border border-border/60 bg-muted/20">
-        <div className="flex items-center justify-between border-b border-border/60 bg-muted/40 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-          <span>Expected format · sample</span>
-          <span className="font-mono normal-case tracking-normal">feedback.csv</span>
+      {/* Prominent demo path — the first thing a recruiter clicks */}
+      <div className="mt-4 flex w-full max-w-2xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.08] via-primary/[0.04] to-transparent p-4 pl-5 shadow-elevate-1">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <div className="rounded-md bg-primary/15 p-1.5">
+              <Play className="h-3.5 w-3.5 text-primary" />
+            </div>
+            <span className="text-sm font-semibold">See it in one click</span>
+          </div>
+          <p className="mt-1 max-w-md text-xs text-muted-foreground">
+            30 synthetic customer conversations. Nothing uploaded — the flow runs on a sample set.
+          </p>
         </div>
-        <div className="grid grid-cols-[120px_1fr] gap-x-4 text-xs">
-          <div className="border-b border-border/60 bg-muted/30 px-3 py-1.5 font-semibold text-muted-foreground">
-            Customer
-          </div>
-          <div className="border-b border-border/60 bg-muted/30 px-3 py-1.5 font-semibold text-muted-foreground">
-            Feedback
-          </div>
-          <div className="px-3 py-1.5 font-mono text-muted-foreground">acme_corp</div>
-          <div className="px-3 py-1.5 text-foreground">
-            Can't roll out until you support SSO with Okta.
-          </div>
-          <div className="border-t border-border/40 px-3 py-1.5 font-mono text-muted-foreground">
-            northwind
-          </div>
-          <div className="border-t border-border/40 px-3 py-1.5 text-foreground">
-            Mobile app crashes on large documents.
-          </div>
-          <div className="border-t border-border/40 px-3 py-1.5 font-mono text-muted-foreground">
-            globex
-          </div>
-          <div className="border-t border-border/40 px-3 py-1.5 text-foreground">
-            Search doesn't index PDFs, which is where our content lives.
-          </div>
-        </div>
+        <Button onClick={onDemo} size="lg" className="shrink-0 shadow-elevate-2">
+          <Play className="mr-2 h-4 w-4" />
+          Run synthetic demo
+        </Button>
       </div>
 
-      {/* Prominent demo path — likely the first thing an interviewer clicks */}
-      <div className="mt-6 w-full rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="rounded-md bg-primary/20 p-1.5">
-                <Play className="h-3.5 w-3.5 text-primary" />
-              </div>
-              <span className="text-sm font-semibold">See it work in one click</span>
-            </div>
-            <p className="mt-1 max-w-md text-xs text-muted-foreground">
-              30 synthetic customer comments across enterprise-readiness, mobile, search, and
-              integration asks. Nothing is uploaded — everything runs on the sample set.
-            </p>
-          </div>
-          <Button onClick={onDemo} size="lg" className="shrink-0">
-            <Play className="mr-2 h-4 w-4" />
-            Run synthetic demo
-          </Button>
-        </div>
-      </div>
 
       <div className="mt-10 grid w-full gap-4 sm:grid-cols-2">
         <Card className="border-border/60 p-5">
