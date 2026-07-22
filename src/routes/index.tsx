@@ -1170,7 +1170,7 @@ function DetailScreen({
       </Button>
 
       <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-        Step 4 of 4
+        Why it matters
       </p>
       <h1 className="mt-1 text-3xl font-semibold tracking-tight">
         Why does <span className="text-primary">{op.title}</span> matter?
