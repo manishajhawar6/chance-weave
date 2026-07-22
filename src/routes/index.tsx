@@ -20,6 +20,9 @@ import {
   Search,
   Eye,
   Pause,
+  Lock,
+  Play,
+  Compass,
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
@@ -36,6 +39,7 @@ import {
   type ClusterResult,
   type Opportunity,
 } from "@/lib/cluster.functions";
+import { DEMO_FEEDBACK } from "@/lib/demo-feedback";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -84,6 +88,23 @@ function Home() {
   const [decisions, setDecisions] = useState<Record<number, Decision>>({});
   const cluster = useServerFn(clusterFeedback);
 
+  const runCluster = useCallback(
+    async (rows: string[]) => {
+      setScreen({ kind: "processing", feedback: rows });
+      setPm({});
+      setDecisions({});
+      try {
+        const result = await cluster({ data: { feedback: rows } });
+        setScreen({ kind: "opportunities", result });
+      } catch (err) {
+        console.error(err);
+        toast.error(err instanceof Error ? err.message : "AI analysis failed.");
+        setScreen({ kind: "upload" });
+      }
+    },
+    [cluster],
+  );
+
   const handleFile = useCallback(
     async (file: File) => {
       try {
@@ -116,26 +137,24 @@ function Home() {
           return;
         }
         if (rows.length > 200) rows = rows.slice(0, 200);
-
-        setScreen({ kind: "processing", feedback: rows });
-        setPm({});
-        setDecisions({});
-        const result = await cluster({ data: { feedback: rows } });
-        setScreen({ kind: "opportunities", result });
+        await runCluster(rows);
       } catch (err) {
         console.error(err);
-        toast.error(err instanceof Error ? err.message : "Failed to process CSV.");
-        setScreen({ kind: "upload" });
+        toast.error(err instanceof Error ? err.message : "Failed to read CSV.");
       }
     },
-    [cluster],
+    [runCluster],
   );
+
+  const handleDemo = useCallback(() => {
+    void runCluster(DEMO_FEEDBACK);
+  }, [runCluster]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Toaster position="top-center" richColors />
       <FlowStepper screen={screen} />
-      {screen.kind === "upload" && <UploadScreen onFile={handleFile} />}
+      {screen.kind === "upload" && <UploadScreen onFile={handleFile} onDemo={handleDemo} />}
       {screen.kind === "processing" && <ProcessingScreen feedback={screen.feedback} />}
       {screen.kind === "opportunities" && (
         <OpportunitiesScreen
@@ -235,24 +254,29 @@ const STEP_ORDER: {
 
 function FlowStepper({ screen }: { screen: Screen }) {
   const activeIndex = STEP_ORDER.findIndex((s) => s.kinds.includes(screen.kind));
+  const active = STEP_ORDER[activeIndex];
   return (
     <div className="border-b border-border/60 bg-card/40 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center gap-2 px-6 py-3 text-xs">
-        <Sparkles className="h-4 w-4 text-primary" />
-        <span className="font-semibold tracking-tight">Signal</span>
-        <div className="mx-4 hidden flex-1 items-center gap-2 md:flex">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3 text-xs">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span className="font-semibold tracking-tight">Signal</span>
+          <span className="hidden text-muted-foreground sm:inline">·</span>
+          <span className="hidden text-muted-foreground sm:inline">
+            Product Prioritization Workflow
+          </span>
+        </div>
+        <div className="ml-auto hidden items-center gap-2 md:flex">
           {STEP_ORDER.map((s, i) => (
             <div key={s.label} className="flex items-center gap-2">
               <div
                 className={cn(
-                  "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold",
-                  i < activeIndex && "bg-primary/20 text-primary",
-                  i === activeIndex && "bg-primary text-primary-foreground",
-                  i > activeIndex && "bg-muted text-muted-foreground",
+                  "flex h-2 w-2 rounded-full",
+                  i < activeIndex && "bg-primary/60",
+                  i === activeIndex && "bg-primary",
+                  i > activeIndex && "bg-muted-foreground/30",
                 )}
-              >
-                {i < activeIndex ? <Check className="h-3 w-3" /> : i + 1}
-              </div>
+              />
               <span
                 className={cn(
                   "font-medium",
@@ -261,10 +285,18 @@ function FlowStepper({ screen }: { screen: Screen }) {
               >
                 {s.label}
               </span>
-              {i < STEP_ORDER.length - 1 && <div className="mx-1 h-px w-8 bg-border" />}
+              {i < STEP_ORDER.length - 1 && (
+                <div className="mx-1 h-px w-6 bg-border" />
+              )}
             </div>
           ))}
         </div>
+        {active && (
+          <div className="w-full text-muted-foreground md:hidden">
+            <span className="font-medium text-foreground">{active.label}:</span>{" "}
+            {active.question}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -272,19 +304,22 @@ function FlowStepper({ screen }: { screen: Screen }) {
 
 // ---------- Screen 1: Upload ----------
 
-function UploadScreen({ onFile }: { onFile: (f: File) => void }) {
+function UploadScreen({
+  onFile,
+  onDemo,
+}: {
+  onFile: (f: File) => void;
+  onDemo: () => void;
+}) {
   const [dragging, setDragging] = useState(false);
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-49px)] max-w-3xl flex-col items-center justify-center px-6 py-16">
-      <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-        Step 1 of 4
-      </p>
+    <div className="mx-auto flex min-h-[calc(100vh-49px)] max-w-4xl flex-col items-center justify-center px-6 py-16">
       <h1 className="text-center text-4xl font-semibold tracking-tight sm:text-5xl">
         What customer evidence do I want to analyze?
       </h1>
-      <p className="mt-4 max-w-xl text-center text-base text-muted-foreground">
-        Upload a CSV of raw customer feedback. Support tickets, survey responses, review exports — anything with
-        one comment per row.
+      <p className="mt-4 max-w-2xl text-center text-base text-muted-foreground">
+        Upload customer conversations to identify product opportunities. Support tickets, survey
+        responses, sales-call notes, review exports — anything with one comment per row.
       </p>
 
       <label
@@ -323,97 +358,171 @@ function UploadScreen({ onFile }: { onFile: (f: File) => void }) {
         />
       </label>
 
-      <div className="mt-8 flex items-center gap-6 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <Bot className="h-3.5 w-3.5" /> AI extracts patterns & evidence
-        </div>
-        <div className="flex items-center gap-1.5">
-          <UserIcon className="h-3.5 w-3.5" /> You score effort & strategy
-        </div>
+      <div className="mt-4 flex w-full items-center justify-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
+          no CSV handy?
+        </span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+      <Button
+        variant="outline"
+        onClick={onDemo}
+        className="mt-4"
+      >
+        <Play className="mr-2 h-4 w-4" />
+        Try with synthetic demo data
+      </Button>
+
+      <div className="mt-10 grid w-full gap-4 sm:grid-cols-2">
+        <Card className="border-border/60 p-5">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+            <Compass className="h-4 w-4" />
+            After analysis you'll discover
+          </div>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              Emerging product opportunities, ranked by evidence
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              Customer demand patterns and recurring themes
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              Business impact evidence with representative quotes
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              Prioritization inputs you control (effort, strategy, revenue)
+            </li>
+          </ul>
+        </Card>
+        <Card className="border-border/60 p-5">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <Lock className="h-4 w-4" />
+            What you can trust
+          </div>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li className="flex items-start gap-2">
+              <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              Your CSV stays within this analysis session
+            </li>
+            <li className="flex items-start gap-2">
+              <Play className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              Synthetic demo available if you don't want to upload real data
+            </li>
+            <li className="flex items-start gap-2">
+              <UserIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              AI surfaces evidence — it never makes roadmap decisions for you
+            </li>
+          </ul>
+        </Card>
       </div>
     </div>
   );
 }
 
-// ---------- Screen 2: Processing (staged reasoning) ----------
+// ---------- Screen 2: Processing (live signal clustering) ----------
 
-const STAGES = [
-  { label: "Reading customer feedback", detail: "Parsing verbatims, filtering noise" },
-  { label: "Detecting recurring themes", detail: "Grouping by topic and sentiment" },
-  { label: "Extracting opportunities", detail: "Identifying distinct problems & requests" },
-  { label: "Scoring customer demand", detail: "Weighing frequency and intensity" },
-  { label: "Estimating confidence", detail: "How well-supported is each pattern?" },
-  { label: "Linking evidence", detail: "Attaching direct quotes to each opportunity" },
+// The AI request is running in the background; this screen visualises the metaphor:
+// individual signal tokens appear, then get grouped and named into an opportunity.
+const CLUSTER_DEMO: { name: string; signals: string[] }[] = [
+  { name: "Enterprise Readiness", signals: ["SSO", "SAML", "SCIM", "SOC 2", "Private VPC", "Audit logs", "RBAC"] },
+  { name: "Mobile Reliability", signals: ["iOS crash", "Android parity", "Push notifications", "App freeze"] },
+  { name: "Search Improvements", signals: ["Full-text", "PDF indexing", "Filters", "Fuzzy typos"] },
+  { name: "Integrations", signals: ["Webhooks", "Zapier triggers", "API rate limits"] },
 ];
 
 function ProcessingScreen({ feedback }: { feedback: string[] }) {
-  const [stage, setStage] = useState(0);
+  const [tick, setTick] = useState(0);
   useEffect(() => {
-    if (stage >= STAGES.length - 1) return;
-    const t = setTimeout(() => setStage((s) => s + 1), 2200);
-    return () => clearTimeout(t);
-  }, [stage]);
+    const t = setInterval(() => setTick((n) => n + 1), 650);
+    return () => clearInterval(t);
+  }, []);
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-        Step 2 of 4
-      </p>
+    <div className="mx-auto max-w-4xl px-6 py-12">
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
         What patterns is AI discovering?
       </h1>
-      <p className="mt-3 text-sm text-muted-foreground">
-        Analyzing {feedback.length} feedback items. Each step below is happening on the server —
-        you'll see the results next.
+      <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+        Reading {feedback.length} feedback items. Watch individual signals get grouped into named
+        opportunities — the same shape the ranking view will use.
       </p>
 
-      <Card className="mt-8 border-border/60 p-6">
-        <ol className="space-y-4">
-          {STAGES.map((s, i) => {
-            const state = i < stage ? "done" : i === stage ? "active" : "pending";
-            return (
-              <li key={s.label} className="flex items-start gap-4">
-                <div
-                  className={cn(
-                    "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
-                    state === "done" && "bg-primary/20 text-primary",
-                    state === "active" && "bg-primary text-primary-foreground",
-                    state === "pending" && "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {state === "done" ? (
-                    <Check className="h-3.5 w-3.5" />
-                  ) : state === "active" ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      <div className="mt-8 space-y-4">
+        {CLUSTER_DEMO.map((group, gi) => {
+          // Reveal signals progressively across all groups.
+          const startedAt = gi * 3;
+          const shownSignals = Math.max(0, Math.min(group.signals.length, tick - startedAt));
+          const named = tick >= startedAt + group.signals.length + 1;
+          const active = shownSignals > 0 && !named;
+          return (
+            <Card
+              key={group.name}
+              className={cn(
+                "border p-5 transition-colors",
+                named
+                  ? "border-primary/40 bg-primary/5"
+                  : active
+                    ? "border-border/80"
+                    : "border-border/40 bg-muted/20",
+              )}
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2">
+                  {named ? (
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                  ) : active ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   ) : (
-                    <span className="text-[10px] font-semibold">{i + 1}</span>
+                    <div className="h-5 w-5 rounded-full border-2 border-dashed border-muted-foreground/40" />
                   )}
-                </div>
-                <div className="flex-1">
-                  <div
+                  <span
                     className={cn(
-                      "text-sm font-medium",
-                      state === "pending" && "text-muted-foreground",
+                      "text-xs font-medium uppercase tracking-wider",
+                      named ? "text-primary" : "text-muted-foreground",
                     )}
                   >
-                    {s.label}
-                  </div>
-                  <div className="text-xs text-muted-foreground">{s.detail}</div>
+                    {named ? "Opportunity" : active ? "Clustering signals" : "Queued"}
+                  </span>
                 </div>
-                <Bot
-                  className={cn(
-                    "h-4 w-4 shrink-0",
-                    state === "active" ? "text-primary" : "text-muted-foreground/50",
+                <div className="flex flex-1 flex-wrap items-center gap-1.5">
+                  {group.signals.slice(0, shownSignals).map((sig) => (
+                    <span
+                      key={sig}
+                      className={cn(
+                        "rounded-md border px-2 py-0.5 text-xs transition-colors",
+                        named
+                          ? "border-primary/30 bg-primary/10 text-primary"
+                          : "border-border bg-card text-foreground",
+                      )}
+                    >
+                      {sig}
+                    </span>
+                  ))}
+                  {shownSignals < group.signals.length && active && (
+                    <span className="text-xs text-muted-foreground">…</span>
                   )}
-                />
-              </li>
-            );
-          })}
-        </ol>
-      </Card>
+                </div>
+                {named && (
+                  <div className="flex items-center gap-2">
+                    <ArrowLeft className="h-4 w-4 rotate-180 text-primary" />
+                    <span className="text-sm font-semibold text-primary">{group.name}</span>
+                  </div>
+                )}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
 
-      <p className="mt-6 text-center text-xs text-muted-foreground">
-        This usually takes 20–60 seconds depending on dataset size.
+      <p className="mt-8 text-center text-xs text-muted-foreground">
+        AI is running on the server · results appear as soon as clustering completes
       </p>
     </div>
   );
@@ -449,13 +558,24 @@ function PMChip({ children, className }: { children: React.ReactNode; className?
 
 // ---------- Priority scoring ----------
 
-function priorityScore(op: Opportunity, pm?: PMInput) {
-  // AI weight: customer_demand (0-100) * confidence (0-100) / 100 => 0-100
-  const aiSignal = (op.customer_demand * op.confidence) / 100;
-  // PM weight: strategic_importance (1-5) * 15 => 15-75; effort penalty
+function priorityBreakdown(op: Opportunity, pm?: PMInput) {
+  const impactBoost: Record<Opportunity["business_impact"], number> = {
+    low: 0,
+    medium: 5,
+    high: 12,
+    critical: 20,
+  };
+  const ai = Math.round(
+    ((op.customer_demand * op.confidence) / 100) * 0.6 + impactBoost[op.business_impact],
+  );
   const strategic = pm?.strategic_importance ? pm.strategic_importance * 15 : 0;
   const effortPenalty = pm?.engineering_effort ? pm.engineering_effort * 3 : 0;
-  return Math.max(0, Math.round(aiSignal * 0.6 + strategic - effortPenalty));
+  const total = Math.max(0, ai + strategic - effortPenalty);
+  return { ai, strategic, effortPenalty, total };
+}
+
+function priorityScore(op: Opportunity, pm?: PMInput) {
+  return priorityBreakdown(op, pm).total;
 }
 
 // ---------- Screen 3: Opportunities ----------
@@ -499,19 +619,16 @@ function OpportunitiesScreen({
     setPm((prev) => ({ ...prev, [i]: { ...prev[i], ...patch } }));
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
+    <div className="mx-auto max-w-[1400px] px-6 py-10">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            Step 3 of 4
-          </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+          <h1 className="text-3xl font-semibold tracking-tight">
             What opportunities are emerging?
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             {result.opportunities.length} opportunities extracted from {result.feedback.length}{" "}
-            feedback items. Add your effort and strategic scores, then select 2+ to compare
-            side-by-side.
+            feedback items. AI supplied demand, evidence, and impact; add your effort and strategic
+            scores to see the final priority. Select 2+ to compare side-by-side.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={onReset}>
@@ -535,98 +652,152 @@ function OpportunitiesScreen({
         </div>
       )}
 
-      <div className="mt-8 overflow-hidden rounded-xl border border-border/60">
-        <div className="grid grid-cols-[36px_minmax(0,2fr)_120px_100px_100px_140px_140px_120px] items-center gap-3 border-b border-border/60 bg-muted/30 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          <div />
-          <div>Opportunity</div>
-          <div className="flex items-center gap-1">
-            <Users className="h-3 w-3" /> Demand <AIChip>AI</AIChip>
+      <div className="mt-8 overflow-x-auto rounded-xl border border-border/60">
+        <div className="min-w-[1100px]">
+          <div className="grid grid-cols-[36px_minmax(0,2.2fr)_110px_minmax(0,1.4fr)_120px_240px_180px] items-center gap-3 border-b border-border/60 bg-muted/30 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div />
+            <div>Opportunity</div>
+            <div className="flex items-center gap-1">
+              <Users className="h-3 w-3" /> Demand <AIChip>AI</AIChip>
+            </div>
+            <div className="flex items-center gap-1">
+              <Quote className="h-3 w-3" /> Evidence <AIChip>AI</AIChip>
+            </div>
+            <div className="flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" /> Impact <AIChip>AI</AIChip>
+            </div>
+            <div className="flex items-center gap-1">
+              PM Inputs <PMChip>You</PMChip>
+            </div>
+            <div className="text-right">Final Priority</div>
           </div>
-          <div className="flex items-center gap-1">
-            <TrendingUp className="h-3 w-3" /> Impact <AIChip>AI</AIChip>
-          </div>
-          <div className="flex items-center gap-1">
-            <ShieldCheck className="h-3 w-3" /> Conf. <AIChip>AI</AIChip>
-          </div>
-          <div className="flex items-center gap-1">
-            Effort <PMChip>You</PMChip>
-          </div>
-          <div className="flex items-center gap-1">
-            Strategic <PMChip>You</PMChip>
-          </div>
-          <div className="text-right">Priority</div>
-        </div>
-        {rows.map(({ op, i, priority }) => {
-          const decision = decisions[i];
-          const pmi = pm[i] ?? {};
-          return (
-            <div
-              key={i}
-              className={cn(
-                "grid grid-cols-[36px_minmax(0,2fr)_120px_100px_100px_140px_140px_120px] items-center gap-3 border-b border-border/60 px-4 py-3 transition-colors last:border-b-0",
-                selected.has(i) && "bg-primary/5",
-              )}
-            >
-              <Checkbox
-                checked={selected.has(i)}
-                onCheckedChange={() => toggle(i)}
-                aria-label={`Select ${op.title}`}
-              />
-              <button
-                onClick={() => onOpen(i)}
-                className="text-left"
+          {rows.map(({ op, i, priority }) => {
+            const decision = decisions[i];
+            const pmi = pm[i] ?? {};
+            const bd = priorityBreakdown(op, pmi);
+            const quote = result.feedback[op.representative_quote_index];
+            return (
+              <div
+                key={i}
+                className={cn(
+                  "grid grid-cols-[36px_minmax(0,2.2fr)_110px_minmax(0,1.4fr)_120px_240px_180px] items-start gap-3 border-b border-border/60 px-4 py-3 transition-colors last:border-b-0",
+                  selected.has(i) && "bg-primary/5",
+                )}
               >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-semibold hover:underline">{op.title}</span>
-                  {decision && (
+                <Checkbox
+                  checked={selected.has(i)}
+                  onCheckedChange={() => toggle(i)}
+                  aria-label={`Select ${op.title}`}
+                  className="mt-1"
+                />
+                <button onClick={() => onOpen(i)} className="text-left">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold hover:underline">{op.title}</span>
+                    {decision && (
+                      <span
+                        className={cn(
+                          "rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
+                          DECISION_META[decision].tone,
+                        )}
+                      >
+                        {DECISION_META[decision].label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                    {op.problem}
+                  </div>
+                </button>
+                <MeterCell value={op.customer_demand} />
+                <div className="text-xs text-muted-foreground">
+                  <div className="font-medium text-foreground">
+                    {op.evidence_indices.length} quote
+                    {op.evidence_indices.length === 1 ? "" : "s"}
+                  </div>
+                  {quote && (
+                    <div className="mt-1 line-clamp-2 italic">
+                      "{quote.slice(0, 90)}
+                      {quote.length > 90 ? "…" : ""}"
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-xs font-medium capitalize",
+                      IMPACT_TONE[op.business_impact],
+                    )}
+                  >
+                    {op.business_impact}
+                  </span>
+                  <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <ShieldCheck className="h-3 w-3" />
+                    {Math.round(op.confidence)}% conf.
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Effort
+                    </Label>
+                    <NumInput
+                      value={pmi.engineering_effort}
+                      onChange={(v) => updatePM(i, { engineering_effort: v })}
+                      min={1}
+                      max={10}
+                      placeholder="1-10"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Strategic
+                    </Label>
+                    <NumInput
+                      value={pmi.strategic_importance}
+                      onChange={(v) => updatePM(i, { strategic_importance: v })}
+                      min={1}
+                      max={5}
+                      placeholder="1-5"
+                    />
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-semibold tabular-nums">{priority}</div>
+                  <div className="mt-1 flex flex-wrap justify-end gap-1 text-[10px]">
+                    <span className="rounded border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-primary">
+                      AI {bd.ai}
+                    </span>
                     <span
                       className={cn(
-                        "rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
-                        DECISION_META[decision].tone,
+                        "rounded border px-1.5 py-0.5",
+                        bd.strategic > 0
+                          ? "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400"
+                          : "border-dashed border-border text-muted-foreground",
                       )}
                     >
-                      {DECISION_META[decision].label}
+                      + You {bd.strategic}
                     </span>
-                  )}
+                    {bd.effortPenalty > 0 && (
+                      <span className="rounded border border-amber-500/30 bg-amber-500/5 px-1.5 py-0.5 text-amber-600 dark:text-amber-400">
+                        − Effort {bd.effortPenalty}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
-                  {op.problem}
-                </div>
-              </button>
-              <MeterCell value={op.customer_demand} />
-              <div>
-                <span
-                  className={cn(
-                    "rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-                    IMPACT_TONE[op.business_impact],
-                  )}
-                >
-                  {op.business_impact}
-                </span>
               </div>
-              <MeterCell value={op.confidence} tone="muted" />
-              <NumInput
-                value={pmi.engineering_effort}
-                onChange={(v) => updatePM(i, { engineering_effort: v })}
-                min={1}
-                max={10}
-                placeholder="1-10"
-              />
-              <NumInput
-                value={pmi.strategic_importance}
-                onChange={(v) => updatePM(i, { strategic_importance: v })}
-                min={1}
-                max={5}
-                placeholder="1-5"
-              />
-              <div className="text-right">
-                <span className="text-lg font-semibold tabular-nums">{priority}</span>
-                <div className="text-[10px] text-muted-foreground">blended</div>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
+
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        Priority is not a single opaque score. It's{" "}
+        <span className="text-primary">AI-inferred customer signal</span> +{" "}
+        <span className="text-amber-600 dark:text-amber-400">your strategic importance</span> −{" "}
+        <span className="text-amber-600 dark:text-amber-400">your engineering effort</span>. Each
+        row shows the parts so you can see where the number comes from.
+      </p>
+
 
       <div className="sticky bottom-4 mt-6 flex justify-center">
         <div
@@ -999,7 +1170,7 @@ function DetailScreen({
       </Button>
 
       <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-        Step 4 of 4
+        Why it matters
       </p>
       <h1 className="mt-1 text-3xl font-semibold tracking-tight">
         Why does <span className="text-primary">{op.title}</span> matter?
@@ -1133,7 +1304,7 @@ function DetailScreen({
 
       <div className="mt-10 rounded-xl border border-border/60 bg-card p-6">
         <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          Step 5 · Decision
+          Decision
         </p>
         <h2 className="mt-1 text-xl font-semibold">What should I do next?</h2>
         <p className="mt-1 text-sm text-muted-foreground">
