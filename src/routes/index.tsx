@@ -23,6 +23,7 @@ import {
   Lock,
   Play,
   Compass,
+  FileText,
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
@@ -40,6 +41,7 @@ import {
   type Opportunity,
 } from "@/lib/cluster.functions";
 import { DEMO_FEEDBACK } from "@/lib/demo-feedback";
+import { DecisionSummaryDialog } from "@/components/decision-summary";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -313,13 +315,20 @@ function UploadScreen({
 }) {
   const [dragging, setDragging] = useState(false);
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-49px)] max-w-4xl flex-col items-center justify-center px-6 py-16">
+    <div className="mx-auto flex min-h-[calc(100vh-49px)] max-w-4xl flex-col items-center px-6 py-12">
+      <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-primary">
+        <Sparkles className="h-3.5 w-3.5" />
+        Evidence-backed prioritization
+      </div>
       <h1 className="text-center text-4xl font-semibold tracking-tight sm:text-5xl">
-        What customer evidence do I want to analyze?
+        Prioritize what to build next
+        <br />
+        with <span className="text-primary">evidence</span>, not intuition.
       </h1>
-      <p className="mt-4 max-w-2xl text-center text-base text-muted-foreground">
-        Upload customer conversations to identify product opportunities. Support tickets, survey
-        responses, sales-call notes, review exports — anything with one comment per row.
+      <p className="mt-5 max-w-2xl text-center text-base text-muted-foreground">
+        AI organizes customer demand, business signals, and supporting quotes into a comparison
+        workspace — so the roadmap decision you take into the next leadership meeting is one you
+        can defend line by line.
       </p>
 
       <label
@@ -335,17 +344,25 @@ function UploadScreen({
           if (file) onFile(file);
         }}
         className={cn(
-          "mt-10 flex w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-12 transition-colors",
+          "mt-10 flex w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-10 transition-colors",
           dragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
         )}
       >
         <div className="rounded-full bg-primary/10 p-3">
           <Upload className="h-6 w-6 text-primary" />
         </div>
-        <p className="text-sm font-medium">Drop a CSV here, or click to browse</p>
-        <p className="text-xs text-muted-foreground">
-          Auto-detects the feedback column · First 200 rows analyzed
+        <p className="text-sm font-medium">
+          Upload customer conversations to build evidence-backed product priorities
         </p>
+        <p className="text-xs text-muted-foreground">
+          Drop a CSV or click to browse · Auto-detects the feedback column · First 200 rows
+        </p>
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-3 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <Loader2 className="h-3 w-3" />
+            Typical analysis time: ~15 seconds
+          </span>
+        </div>
         <input
           type="file"
           accept=".csv,text/csv"
@@ -358,21 +375,59 @@ function UploadScreen({
         />
       </label>
 
-      <div className="mt-4 flex w-full items-center justify-center gap-3">
-        <div className="h-px flex-1 bg-border" />
-        <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
-          no CSV handy?
-        </span>
-        <div className="h-px flex-1 bg-border" />
+      {/* Sample CSV preview — makes the interaction tangible */}
+      <div className="mt-4 w-full overflow-hidden rounded-lg border border-border/60 bg-muted/20">
+        <div className="flex items-center justify-between border-b border-border/60 bg-muted/40 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          <span>Expected format · sample</span>
+          <span className="font-mono normal-case tracking-normal">feedback.csv</span>
+        </div>
+        <div className="grid grid-cols-[120px_1fr] gap-x-4 text-xs">
+          <div className="border-b border-border/60 bg-muted/30 px-3 py-1.5 font-semibold text-muted-foreground">
+            Customer
+          </div>
+          <div className="border-b border-border/60 bg-muted/30 px-3 py-1.5 font-semibold text-muted-foreground">
+            Feedback
+          </div>
+          <div className="px-3 py-1.5 font-mono text-muted-foreground">acme_corp</div>
+          <div className="px-3 py-1.5 text-foreground">
+            Can't roll out until you support SSO with Okta.
+          </div>
+          <div className="border-t border-border/40 px-3 py-1.5 font-mono text-muted-foreground">
+            northwind
+          </div>
+          <div className="border-t border-border/40 px-3 py-1.5 text-foreground">
+            Mobile app crashes on large documents.
+          </div>
+          <div className="border-t border-border/40 px-3 py-1.5 font-mono text-muted-foreground">
+            globex
+          </div>
+          <div className="border-t border-border/40 px-3 py-1.5 text-foreground">
+            Search doesn't index PDFs, which is where our content lives.
+          </div>
+        </div>
       </div>
-      <Button
-        variant="outline"
-        onClick={onDemo}
-        className="mt-4"
-      >
-        <Play className="mr-2 h-4 w-4" />
-        Try with synthetic demo data
-      </Button>
+
+      {/* Prominent demo path — likely the first thing an interviewer clicks */}
+      <div className="mt-6 w-full rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="rounded-md bg-primary/20 p-1.5">
+                <Play className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <span className="text-sm font-semibold">See it work in one click</span>
+            </div>
+            <p className="mt-1 max-w-md text-xs text-muted-foreground">
+              30 synthetic customer comments across enterprise-readiness, mobile, search, and
+              integration asks. Nothing is uploaded — everything runs on the sample set.
+            </p>
+          </div>
+          <Button onClick={onDemo} size="lg" className="shrink-0">
+            <Play className="mr-2 h-4 w-4" />
+            Run synthetic demo
+          </Button>
+        </div>
+      </div>
 
       <div className="mt-10 grid w-full gap-4 sm:grid-cols-2">
         <Card className="border-border/60 p-5">
@@ -914,8 +969,10 @@ function CompareScreen({
         Comparing {indices.length} opportunities
       </h1>
       <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-        AI-sourced signals are on the top rows; your inputs are on the bottom rows. The blended
-        priority combines both.
+        Two clearly-separated inputs feed the recommendation:{" "}
+        <span className="text-primary">what AI inferred from customer feedback</span> and{" "}
+        <span className="text-amber-600 dark:text-amber-400">what you contribute as PM</span>. The
+        priority recommendation lives underneath both — never as just another column.
       </p>
 
       <div className="mt-8 overflow-x-auto">
@@ -950,11 +1007,14 @@ function CompareScreen({
             );
           })}
 
+          {/* ============ AI SIGNALS GROUP ============ */}
+          <CompareGroupHeader tone="ai" label="AI-inferred from customer feedback" columns={indices.length} />
+
           <CompareRowLabel tone="ai">
             <Users className="h-3.5 w-3.5" /> Customer demand
           </CompareRowLabel>
           {indices.map((i) => (
-            <CompareCell key={`d-${i}`}>
+            <CompareCell key={`d-${i}`} tone="ai">
               <MeterCell value={result.opportunities[i].customer_demand} />
             </CompareCell>
           ))}
@@ -965,7 +1025,7 @@ function CompareScreen({
           {indices.map((i) => {
             const op = result.opportunities[i];
             return (
-              <CompareCell key={`bi-${i}`}>
+              <CompareCell key={`bi-${i}`} tone="ai">
                 <span
                   className={cn(
                     "rounded-full px-2 py-0.5 text-xs font-medium capitalize",
@@ -986,7 +1046,7 @@ function CompareScreen({
             const op = result.opportunities[i];
             const quote = result.feedback[op.representative_quote_index];
             return (
-              <CompareCell key={`ev-${i}`}>
+              <CompareCell key={`ev-${i}`} tone="ai">
                 {quote && (
                   <blockquote className="border-l-2 border-primary/40 pl-2 text-xs italic text-muted-foreground">
                     "{quote.slice(0, 180)}
@@ -1006,18 +1066,21 @@ function CompareScreen({
           {indices.map((i) => {
             const op = result.opportunities[i];
             return (
-              <CompareCell key={`c-${i}`}>
+              <CompareCell key={`c-${i}`} tone="ai">
                 <MeterCell value={op.confidence} tone="muted" />
                 <p className="mt-2 text-xs text-muted-foreground">{op.confidence_rationale}</p>
               </CompareCell>
             );
           })}
 
+          {/* ============ PM INPUTS GROUP ============ */}
+          <CompareGroupHeader tone="pm" label="Your PM inputs — why leadership should care" columns={indices.length} />
+
           <CompareRowLabel tone="pm">
             <Target className="h-3.5 w-3.5" /> Engineering effort
           </CompareRowLabel>
           {indices.map((i) => (
-            <CompareCell key={`e-${i}`}>
+            <CompareCell key={`e-${i}`} tone="pm">
               <NumInput
                 value={pm[i]?.engineering_effort}
                 onChange={(v) => updatePM(i, { engineering_effort: v })}
@@ -1032,7 +1095,7 @@ function CompareScreen({
             <Rocket className="h-3.5 w-3.5" /> Strategic importance
           </CompareRowLabel>
           {indices.map((i) => (
-            <CompareCell key={`s-${i}`}>
+            <CompareCell key={`s-${i}`} tone="pm">
               <NumInput
                 value={pm[i]?.strategic_importance}
                 onChange={(v) => updatePM(i, { strategic_importance: v })}
@@ -1050,7 +1113,7 @@ function CompareScreen({
             </span>
           </CompareRowLabel>
           {indices.map((i) => (
-            <CompareCell key={`r-${i}`}>
+            <CompareCell key={`r-${i}`} tone="pm">
               <Input
                 value={pm[i]?.revenue_opportunity ?? ""}
                 placeholder="e.g. $40k ARR at risk"
@@ -1059,13 +1122,44 @@ function CompareScreen({
               />
             </CompareCell>
           ))}
+        </div>
+      </div>
 
-          <CompareRowLabel>Blended priority</CompareRowLabel>
+      {/* ============ PRIORITY RECOMMENDATION — outcome band, distinct from column grid ============ */}
+      <div className="mt-8 rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="rounded-md bg-primary/20 p-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-primary">
+              Priority recommendation
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Emerges from both groups above — evidence is what carries this forward, not the
+              number.
+            </div>
+          </div>
+        </div>
+        <div
+          className="mt-5 grid gap-4"
+          style={{ gridTemplateColumns: `220px repeat(${indices.length}, minmax(260px, 1fr))` }}
+        >
+          <div className="text-xs text-muted-foreground">
+            AI signal + your strategic − your effort
+          </div>
           {indices.map((i, k) => {
             const p = priorities[k];
             const winner = p === Math.max(...priorities) && priorities.length > 1;
+            const bd = priorityBreakdown(result.opportunities[i], pm[i]);
             return (
-              <CompareCell key={`p-${i}`}>
+              <div
+                key={`p-${i}`}
+                className={cn(
+                  "rounded-lg border bg-card p-4",
+                  winner ? "border-primary/60 shadow-sm" : "border-border/60",
+                )}
+              >
                 <div className="flex items-baseline gap-2">
                   <span
                     className={cn(
@@ -1087,7 +1181,27 @@ function CompareScreen({
                     style={{ width: `${(p / maxPriority) * 100}%` }}
                   />
                 </div>
-              </CompareCell>
+                <div className="mt-3 flex flex-wrap gap-1 text-[10px]">
+                  <span className="rounded border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-primary">
+                    AI {bd.ai}
+                  </span>
+                  <span
+                    className={cn(
+                      "rounded border px-1.5 py-0.5",
+                      bd.strategic > 0
+                        ? "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400"
+                        : "border-dashed border-border text-muted-foreground",
+                    )}
+                  >
+                    + You {bd.strategic}
+                  </span>
+                  {bd.effortPenalty > 0 && (
+                    <span className="rounded border border-amber-500/30 bg-amber-500/5 px-1.5 py-0.5 text-amber-600 dark:text-amber-400">
+                      − Effort {bd.effortPenalty}
+                    </span>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>
@@ -1128,8 +1242,50 @@ function CompareRowLabel({
   );
 }
 
-function CompareCell({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-lg border border-border/60 bg-card p-3">{children}</div>;
+function CompareCell({
+  children,
+  tone,
+}: {
+  children: React.ReactNode;
+  tone?: "ai" | "pm";
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-lg border bg-card p-3",
+        tone === "ai" && "border-primary/20",
+        tone === "pm" && "border-amber-500/30",
+        !tone && "border-border/60",
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function CompareGroupHeader({
+  tone,
+  label,
+  columns,
+}: {
+  tone: "ai" | "pm";
+  label: string;
+  columns: number;
+}) {
+  return (
+    <div
+      style={{ gridColumn: `1 / span ${columns + 1}` }}
+      className={cn(
+        "mt-2 flex items-center gap-2 rounded-md border px-3 py-2 text-[11px] font-semibold uppercase tracking-widest",
+        tone === "ai"
+          ? "border-primary/30 bg-primary/10 text-primary"
+          : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+      )}
+    >
+      {tone === "ai" ? <Bot className="h-3.5 w-3.5" /> : <UserIcon className="h-3.5 w-3.5" />}
+      {label}
+    </div>
+  );
 }
 
 // ---------- Screen 4/5: Detail + Decision ----------
@@ -1153,6 +1309,7 @@ function DetailScreen({
 }) {
   const op = result.opportunities[index];
   const priority = priorityScore(op, pm);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const evidence = useMemo(
     () =>
       op.evidence_indices
@@ -1262,14 +1419,20 @@ function DetailScreen({
         </SignalCard>
       </div>
 
-      <Card className="mt-6 border-primary/30 bg-primary/5 p-5">
+      <Card className="mt-6 border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Blended priority
+          <div className="flex items-center gap-3">
+            <div className="rounded-md bg-primary/20 p-2">
+              <Sparkles className="h-4 w-4 text-primary" />
             </div>
-            <div className="text-xs text-muted-foreground">
-              Combines AI customer signal with your effort & strategic scoring.
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-widest text-primary">
+                Priority recommendation
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Emerges from AI customer signal + your effort & strategic scoring — not a single
+                opaque score.
+              </div>
             </div>
           </div>
           <div className="text-4xl font-semibold tabular-nums">{priority}</div>
@@ -1332,12 +1495,36 @@ function DetailScreen({
           })}
         </div>
         {decision && (
-          <p className="mt-4 text-xs text-muted-foreground">
-            Current decision:{" "}
-            <span className="font-medium text-foreground">{DECISION_META[decision].label}</span>
-          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
+            <div>
+              <p className="text-xs text-muted-foreground">
+                Current decision:{" "}
+                <span className="font-semibold text-foreground">
+                  {DECISION_META[decision].label}
+                </span>
+              </p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                Ready for the roadmap meeting? Export a one-page summary.
+              </p>
+            </div>
+            <Button size="sm" onClick={() => setSummaryOpen(true)}>
+              <FileText className="mr-2 h-4 w-4" />
+              Generate one-page summary
+            </Button>
+          </div>
         )}
       </div>
+
+      {decision && (
+        <DecisionSummaryDialog
+          open={summaryOpen}
+          onOpenChange={setSummaryOpen}
+          result={result}
+          index={index}
+          pm={pm}
+          decision={decision}
+        />
+      )}
     </div>
   );
 }
