@@ -483,17 +483,57 @@ function UploadScreen({
 
 // The AI request is running in the background; this screen visualises the metaphor:
 // individual signal tokens appear, then get grouped and named into an opportunity.
-const CLUSTER_DEMO: { name: string; signals: string[] }[] = [
-  { name: "Enterprise Readiness", signals: ["SSO", "SAML", "SCIM", "SOC 2", "Private VPC", "Audit logs", "RBAC"] },
-  { name: "Mobile Reliability", signals: ["iOS crash", "Android parity", "Push notifications", "App freeze"] },
-  { name: "Search Improvements", signals: ["Full-text", "PDF indexing", "Filters", "Fuzzy typos"] },
-  { name: "Integrations", signals: ["Webhooks", "Zapier triggers", "API rate limits"] },
+// Each step reveals one customer's words. After a group's customers are shown, the
+// AI "pauses" and then resolves a pattern name — mirroring a reasoning trace.
+const CLUSTER_DEMO: {
+  name: string;
+  customers: { id: number; quote: string }[];
+}[] = [
+  {
+    name: "Enterprise Readiness",
+    customers: [
+      { id: 1, quote: "Need SSO" },
+      { id: 7, quote: "Need Okta" },
+      { id: 15, quote: "Need SCIM" },
+      { id: 31, quote: "Need SOC 2" },
+    ],
+  },
+  {
+    name: "Mobile Reliability",
+    customers: [
+      { id: 4, quote: "iOS keeps crashing" },
+      { id: 12, quote: "Android is way behind" },
+      { id: 22, quote: "Push notifications never arrive" },
+    ],
+  },
+  {
+    name: "Search Improvements",
+    customers: [
+      { id: 6, quote: "Search misses PDFs" },
+      { id: 18, quote: "No fuzzy match for typos" },
+      { id: 27, quote: "Need better filters" },
+    ],
+  },
 ];
+
+type StageState = "queued" | "revealing" | "pausing" | "named";
+function stageAt(groupIdx: number, tick: number): { state: StageState; shown: number } {
+  let offset = 0;
+  for (let i = 0; i < groupIdx; i++) {
+    offset += CLUSTER_DEMO[i].customers.length + 2; // customers + pause + name
+  }
+  const local = tick - offset;
+  const size = CLUSTER_DEMO[groupIdx].customers.length;
+  if (local <= 0) return { state: "queued", shown: 0 };
+  if (local <= size) return { state: "revealing", shown: local };
+  if (local === size + 1) return { state: "pausing", shown: size };
+  return { state: "named", shown: size };
+}
 
 function ProcessingScreen({ feedback }: { feedback: string[] }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 650);
+    const t = setInterval(() => setTick((n) => n + 1), 850);
     return () => clearInterval(t);
   }, []);
 
@@ -503,17 +543,18 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
         What patterns is AI discovering?
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Reading {feedback.length} feedback items. Watch individual signals get grouped into named
-        opportunities — the same shape the ranking view will use.
+        Reading {feedback.length} customer conversations. Watch individual voices come in, then the
+        pattern resolve.
       </p>
 
-      <div className="mt-8 space-y-4">
+      <div className="mt-8 space-y-6">
         {CLUSTER_DEMO.map((group, gi) => {
-          // Reveal signals progressively across all groups.
-          const startedAt = gi * 3;
-          const shownSignals = Math.max(0, Math.min(group.signals.length, tick - startedAt));
-          const named = tick >= startedAt + group.signals.length + 1;
-          const active = shownSignals > 0 && !named;
+          const { state, shown } = stageAt(gi, tick);
+          const named = state === "named";
+          const pausing = state === "pausing";
+          const revealing = state === "revealing";
+          const active = revealing || pausing;
+
           return (
             <Card
               key={group.name}
@@ -523,61 +564,65 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
                   ? "border-primary/40 bg-primary/5"
                   : active
                     ? "border-border/80"
-                    : "border-border/40 bg-muted/20",
+                    : "border-border/40 bg-muted/20 opacity-70",
               )}
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-2">
-                  {named ? (
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                      <Check className="h-3.5 w-3.5" />
-                    </div>
-                  ) : active ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                  ) : (
-                    <div className="h-5 w-5 rounded-full border-2 border-dashed border-muted-foreground/40" />
-                  )}
-                  <span
-                    className={cn(
-                      "text-xs font-medium uppercase tracking-wider",
-                      named ? "text-primary" : "text-muted-foreground",
-                    )}
-                  >
-                    {named ? "Opportunity" : active ? "Clustering signals" : "Queued"}
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest">
+                {named ? (
+                  <span className="flex items-center gap-1.5 text-primary">
+                    <Check className="h-3.5 w-3.5" />
+                    Pattern identified
                   </span>
-                </div>
-                <div className="flex flex-1 flex-wrap items-center gap-1.5">
-                  {group.signals.slice(0, shownSignals).map((sig) => (
-                    <span
-                      key={sig}
-                      className={cn(
-                        "rounded-md border px-2 py-0.5 text-xs transition-colors",
-                        named
-                          ? "border-primary/30 bg-primary/10 text-primary"
-                          : "border-border bg-card text-foreground",
-                      )}
-                    >
-                      {sig}
-                    </span>
-                  ))}
-                  {shownSignals < group.signals.length && active && (
-                    <span className="text-xs text-muted-foreground">…</span>
-                  )}
-                </div>
-                {named && (
-                  <div className="flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4 rotate-180 text-primary" />
-                    <span className="text-sm font-semibold text-primary">{group.name}</span>
-                  </div>
+                ) : active ? (
+                  <span className="flex items-center gap-1.5 text-foreground">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                    Listening to customers
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">Queued</span>
                 )}
               </div>
+
+              <div className="mt-3 space-y-2">
+                {group.customers.slice(0, shown).map((c) => (
+                  <div
+                    key={c.id}
+                    className="flex items-start gap-3 rounded-md border border-border/60 bg-card px-3 py-2 text-sm animate-in fade-in slide-in-from-left-2"
+                  >
+                    <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Customer {c.id}
+                    </span>
+                    <span className="text-foreground">{c.quote}</span>
+                  </div>
+                ))}
+                {shown === 0 && !named && (
+                  <div className="text-xs italic text-muted-foreground">Waiting…</div>
+                )}
+              </div>
+
+              {pausing && (
+                <div className="mt-4 flex items-center gap-2 text-sm italic text-muted-foreground animate-pulse">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  These appear to describe…
+                </div>
+              )}
+
+              {named && (
+                <div className="mt-4 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 animate-in fade-in zoom-in-95">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="text-xs uppercase tracking-widest text-primary">
+                    These appear to describe
+                  </span>
+                  <span className="text-base font-semibold text-primary">{group.name}</span>
+                </div>
+              )}
             </Card>
           );
         })}
       </div>
 
       <p className="mt-8 text-center text-xs text-muted-foreground">
-        AI is running on the server · results appear as soon as clustering completes
+        AI is running on the server · your real results appear as soon as clustering completes
       </p>
     </div>
   );
