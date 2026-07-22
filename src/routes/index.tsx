@@ -435,55 +435,96 @@ function UploadScreen({
       </div>
 
 
-      <div className="mt-10 grid w-full gap-4 sm:grid-cols-2">
-        <Card className="border-border/60 p-5">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-            <Compass className="h-4 w-4" />
-            After analysis you'll discover
+      <div className="mt-12 grid w-full max-w-3xl gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-border/60 bg-surface/70 p-5">
+          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-primary">
+            <Compass className="h-3.5 w-3.5" />
+            You'll leave with
           </div>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-              Emerging product opportunities, ranked by evidence
+          <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-foreground/85">
+            <li className="flex items-start gap-2.5">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+              Opportunities ranked by real evidence
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-              Customer demand patterns and recurring themes
+            <li className="flex items-start gap-2.5">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+              Recurring themes and customer-demand patterns
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-              Business impact evidence with representative quotes
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-              Prioritization inputs you control (effort, strategy, revenue)
+            <li className="flex items-start gap-2.5">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+              A priority brief you'd take into a roadmap meeting
             </li>
           </ul>
-        </Card>
-        <Card className="border-border/60 p-5">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <Lock className="h-4 w-4" />
+        </div>
+        <div className="rounded-xl border border-border/60 bg-surface/70 p-5">
+          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <Lock className="h-3.5 w-3.5" />
             What you can trust
           </div>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li className="flex items-start gap-2">
-              <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-foreground/85">
+            <li className="flex items-start gap-2.5">
+              <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
               Your CSV stays within this analysis session
             </li>
-            <li className="flex items-start gap-2">
-              <Play className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              Synthetic demo available if you don't want to upload real data
+            <li className="flex items-start gap-2.5">
+              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+              Every claim links back to a customer quote
             </li>
-            <li className="flex items-start gap-2">
-              <UserIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              AI surfaces evidence — it never makes roadmap decisions for you
+            <li className="flex items-start gap-2.5">
+              <UserIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+              AI never makes the roadmap call — you do
             </li>
           </ul>
-        </Card>
+        </div>
       </div>
     </div>
   );
 }
+
+// A five-second visual answer to "what does Prism do?"
+function TransformationStrip() {
+  const steps: { icon: typeof Users; label: string; sub: string }[] = [
+    { icon: Users, label: "Scattered conversations", sub: "CSV of customer voices" },
+    { icon: Sparkles, label: "AI reasoning", sub: "Cluster · evidence · rationale" },
+    { icon: Layers, label: "Clear opportunities", sub: "Ranked, with sources" },
+    { icon: Rocket, label: "Confident decision", sub: "You own the call" },
+  ];
+  return (
+    <div className="mt-10 grid w-full max-w-3xl grid-cols-1 gap-2 rounded-2xl border border-border/60 bg-surface/60 p-2 shadow-elevate-1 sm:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]">
+      {steps.map((s, i) => {
+        const Icon = s.icon;
+        return (
+          <div key={s.label} className="contents">
+            <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
+              <div
+                className={cn(
+                  "grid h-8 w-8 shrink-0 place-items-center rounded-lg",
+                  i === 3
+                    ? "bg-primary text-primary-foreground shadow-elevate-2"
+                    : "bg-primary/10 text-primary",
+                )}
+              >
+                <Icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-[13px] font-medium leading-tight">{s.label}</div>
+                <div className="truncate text-[11px] text-muted-foreground">{s.sub}</div>
+              </div>
+            </div>
+            {i < steps.length - 1 && (
+              <div className="hidden items-center justify-center text-muted-foreground/50 sm:flex">
+                <svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden>
+                  <path d="M1 6 H16 M11 1 L16 6 L11 11" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 
 // ---------- Screen 2: Processing (live signal clustering) ----------
 
