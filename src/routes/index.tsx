@@ -1307,6 +1307,7 @@ function DetailScreen({
 }) {
   const op = result.opportunities[index];
   const priority = priorityScore(op, pm);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const evidence = useMemo(
     () =>
       op.evidence_indices
