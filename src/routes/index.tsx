@@ -254,24 +254,29 @@ const STEP_ORDER: {
 
 function FlowStepper({ screen }: { screen: Screen }) {
   const activeIndex = STEP_ORDER.findIndex((s) => s.kinds.includes(screen.kind));
+  const active = STEP_ORDER[activeIndex];
   return (
     <div className="border-b border-border/60 bg-card/40 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center gap-2 px-6 py-3 text-xs">
-        <Sparkles className="h-4 w-4 text-primary" />
-        <span className="font-semibold tracking-tight">Signal</span>
-        <div className="mx-4 hidden flex-1 items-center gap-2 md:flex">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3 text-xs">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span className="font-semibold tracking-tight">Signal</span>
+          <span className="hidden text-muted-foreground sm:inline">·</span>
+          <span className="hidden text-muted-foreground sm:inline">
+            Product Prioritization Workflow
+          </span>
+        </div>
+        <div className="ml-auto hidden items-center gap-2 md:flex">
           {STEP_ORDER.map((s, i) => (
             <div key={s.label} className="flex items-center gap-2">
               <div
                 className={cn(
-                  "flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-semibold",
-                  i < activeIndex && "bg-primary/20 text-primary",
-                  i === activeIndex && "bg-primary text-primary-foreground",
-                  i > activeIndex && "bg-muted text-muted-foreground",
+                  "flex h-2 w-2 rounded-full",
+                  i < activeIndex && "bg-primary/60",
+                  i === activeIndex && "bg-primary",
+                  i > activeIndex && "bg-muted-foreground/30",
                 )}
-              >
-                {i < activeIndex ? <Check className="h-3 w-3" /> : i + 1}
-              </div>
+              />
               <span
                 className={cn(
                   "font-medium",
@@ -280,10 +285,18 @@ function FlowStepper({ screen }: { screen: Screen }) {
               >
                 {s.label}
               </span>
-              {i < STEP_ORDER.length - 1 && <div className="mx-1 h-px w-8 bg-border" />}
+              {i < STEP_ORDER.length - 1 && (
+                <div className="mx-1 h-px w-6 bg-border" />
+              )}
             </div>
           ))}
         </div>
+        {active && (
+          <div className="w-full text-muted-foreground md:hidden">
+            <span className="font-medium text-foreground">{active.label}:</span>{" "}
+            {active.question}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -291,19 +304,22 @@ function FlowStepper({ screen }: { screen: Screen }) {
 
 // ---------- Screen 1: Upload ----------
 
-function UploadScreen({ onFile }: { onFile: (f: File) => void }) {
+function UploadScreen({
+  onFile,
+  onDemo,
+}: {
+  onFile: (f: File) => void;
+  onDemo: () => void;
+}) {
   const [dragging, setDragging] = useState(false);
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-49px)] max-w-3xl flex-col items-center justify-center px-6 py-16">
-      <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-        Step 1 of 4
-      </p>
+    <div className="mx-auto flex min-h-[calc(100vh-49px)] max-w-4xl flex-col items-center justify-center px-6 py-16">
       <h1 className="text-center text-4xl font-semibold tracking-tight sm:text-5xl">
         What customer evidence do I want to analyze?
       </h1>
-      <p className="mt-4 max-w-xl text-center text-base text-muted-foreground">
-        Upload a CSV of raw customer feedback. Support tickets, survey responses, review exports — anything with
-        one comment per row.
+      <p className="mt-4 max-w-2xl text-center text-base text-muted-foreground">
+        Upload customer conversations to identify product opportunities. Support tickets, survey
+        responses, sales-call notes, review exports — anything with one comment per row.
       </p>
 
       <label
@@ -342,97 +358,171 @@ function UploadScreen({ onFile }: { onFile: (f: File) => void }) {
         />
       </label>
 
-      <div className="mt-8 flex items-center gap-6 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <Bot className="h-3.5 w-3.5" /> AI extracts patterns & evidence
-        </div>
-        <div className="flex items-center gap-1.5">
-          <UserIcon className="h-3.5 w-3.5" /> You score effort & strategy
-        </div>
+      <div className="mt-4 flex w-full items-center justify-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
+          no CSV handy?
+        </span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+      <Button
+        variant="outline"
+        onClick={onDemo}
+        className="mt-4"
+      >
+        <Play className="mr-2 h-4 w-4" />
+        Try with synthetic demo data
+      </Button>
+
+      <div className="mt-10 grid w-full gap-4 sm:grid-cols-2">
+        <Card className="border-border/60 p-5">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+            <Compass className="h-4 w-4" />
+            After analysis you'll discover
+          </div>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              Emerging product opportunities, ranked by evidence
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              Customer demand patterns and recurring themes
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              Business impact evidence with representative quotes
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              Prioritization inputs you control (effort, strategy, revenue)
+            </li>
+          </ul>
+        </Card>
+        <Card className="border-border/60 p-5">
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <Lock className="h-4 w-4" />
+            What you can trust
+          </div>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li className="flex items-start gap-2">
+              <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              Your CSV stays within this analysis session
+            </li>
+            <li className="flex items-start gap-2">
+              <Play className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              Synthetic demo available if you don't want to upload real data
+            </li>
+            <li className="flex items-start gap-2">
+              <UserIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              AI surfaces evidence — it never makes roadmap decisions for you
+            </li>
+          </ul>
+        </Card>
       </div>
     </div>
   );
 }
 
-// ---------- Screen 2: Processing (staged reasoning) ----------
+// ---------- Screen 2: Processing (live signal clustering) ----------
 
-const STAGES = [
-  { label: "Reading customer feedback", detail: "Parsing verbatims, filtering noise" },
-  { label: "Detecting recurring themes", detail: "Grouping by topic and sentiment" },
-  { label: "Extracting opportunities", detail: "Identifying distinct problems & requests" },
-  { label: "Scoring customer demand", detail: "Weighing frequency and intensity" },
-  { label: "Estimating confidence", detail: "How well-supported is each pattern?" },
-  { label: "Linking evidence", detail: "Attaching direct quotes to each opportunity" },
+// The AI request is running in the background; this screen visualises the metaphor:
+// individual signal tokens appear, then get grouped and named into an opportunity.
+const CLUSTER_DEMO: { name: string; signals: string[] }[] = [
+  { name: "Enterprise Readiness", signals: ["SSO", "SAML", "SCIM", "SOC 2", "Private VPC", "Audit logs", "RBAC"] },
+  { name: "Mobile Reliability", signals: ["iOS crash", "Android parity", "Push notifications", "App freeze"] },
+  { name: "Search Improvements", signals: ["Full-text", "PDF indexing", "Filters", "Fuzzy typos"] },
+  { name: "Integrations", signals: ["Webhooks", "Zapier triggers", "API rate limits"] },
 ];
 
 function ProcessingScreen({ feedback }: { feedback: string[] }) {
-  const [stage, setStage] = useState(0);
+  const [tick, setTick] = useState(0);
   useEffect(() => {
-    if (stage >= STAGES.length - 1) return;
-    const t = setTimeout(() => setStage((s) => s + 1), 2200);
-    return () => clearTimeout(t);
-  }, [stage]);
+    const t = setInterval(() => setTick((n) => n + 1), 650);
+    return () => clearInterval(t);
+  }, []);
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-16">
-      <p className="mb-3 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-        Step 2 of 4
-      </p>
+    <div className="mx-auto max-w-4xl px-6 py-12">
       <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
         What patterns is AI discovering?
       </h1>
-      <p className="mt-3 text-sm text-muted-foreground">
-        Analyzing {feedback.length} feedback items. Each step below is happening on the server —
-        you'll see the results next.
+      <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+        Reading {feedback.length} feedback items. Watch individual signals get grouped into named
+        opportunities — the same shape the ranking view will use.
       </p>
 
-      <Card className="mt-8 border-border/60 p-6">
-        <ol className="space-y-4">
-          {STAGES.map((s, i) => {
-            const state = i < stage ? "done" : i === stage ? "active" : "pending";
-            return (
-              <li key={s.label} className="flex items-start gap-4">
-                <div
-                  className={cn(
-                    "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
-                    state === "done" && "bg-primary/20 text-primary",
-                    state === "active" && "bg-primary text-primary-foreground",
-                    state === "pending" && "bg-muted text-muted-foreground",
-                  )}
-                >
-                  {state === "done" ? (
-                    <Check className="h-3.5 w-3.5" />
-                  ) : state === "active" ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+      <div className="mt-8 space-y-4">
+        {CLUSTER_DEMO.map((group, gi) => {
+          // Reveal signals progressively across all groups.
+          const startedAt = gi * 3;
+          const shownSignals = Math.max(0, Math.min(group.signals.length, tick - startedAt));
+          const named = tick >= startedAt + group.signals.length + 1;
+          const active = shownSignals > 0 && !named;
+          return (
+            <Card
+              key={group.name}
+              className={cn(
+                "border p-5 transition-colors",
+                named
+                  ? "border-primary/40 bg-primary/5"
+                  : active
+                    ? "border-border/80"
+                    : "border-border/40 bg-muted/20",
+              )}
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2">
+                  {named ? (
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <Check className="h-3.5 w-3.5" />
+                    </div>
+                  ) : active ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
                   ) : (
-                    <span className="text-[10px] font-semibold">{i + 1}</span>
+                    <div className="h-5 w-5 rounded-full border-2 border-dashed border-muted-foreground/40" />
                   )}
-                </div>
-                <div className="flex-1">
-                  <div
+                  <span
                     className={cn(
-                      "text-sm font-medium",
-                      state === "pending" && "text-muted-foreground",
+                      "text-xs font-medium uppercase tracking-wider",
+                      named ? "text-primary" : "text-muted-foreground",
                     )}
                   >
-                    {s.label}
-                  </div>
-                  <div className="text-xs text-muted-foreground">{s.detail}</div>
+                    {named ? "Opportunity" : active ? "Clustering signals" : "Queued"}
+                  </span>
                 </div>
-                <Bot
-                  className={cn(
-                    "h-4 w-4 shrink-0",
-                    state === "active" ? "text-primary" : "text-muted-foreground/50",
+                <div className="flex flex-1 flex-wrap items-center gap-1.5">
+                  {group.signals.slice(0, shownSignals).map((sig) => (
+                    <span
+                      key={sig}
+                      className={cn(
+                        "rounded-md border px-2 py-0.5 text-xs transition-colors",
+                        named
+                          ? "border-primary/30 bg-primary/10 text-primary"
+                          : "border-border bg-card text-foreground",
+                      )}
+                    >
+                      {sig}
+                    </span>
+                  ))}
+                  {shownSignals < group.signals.length && active && (
+                    <span className="text-xs text-muted-foreground">…</span>
                   )}
-                />
-              </li>
-            );
-          })}
-        </ol>
-      </Card>
+                </div>
+                {named && (
+                  <div className="flex items-center gap-2">
+                    <ArrowLeft className="h-4 w-4 rotate-180 text-primary" />
+                    <span className="text-sm font-semibold text-primary">{group.name}</span>
+                  </div>
+                )}
+              </div>
+            </Card>
+          );
+        })}
+      </div>
 
-      <p className="mt-6 text-center text-xs text-muted-foreground">
-        This usually takes 20–60 seconds depending on dataset size.
+      <p className="mt-8 text-center text-xs text-muted-foreground">
+        AI is running on the server · results appear as soon as clustering completes
       </p>
     </div>
   );
