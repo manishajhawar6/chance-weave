@@ -1493,12 +1493,36 @@ function DetailScreen({
           })}
         </div>
         {decision && (
-          <p className="mt-4 text-xs text-muted-foreground">
-            Current decision:{" "}
-            <span className="font-medium text-foreground">{DECISION_META[decision].label}</span>
-          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
+            <div>
+              <p className="text-xs text-muted-foreground">
+                Current decision:{" "}
+                <span className="font-semibold text-foreground">
+                  {DECISION_META[decision].label}
+                </span>
+              </p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                Ready for the roadmap meeting? Export a one-page summary.
+              </p>
+            </div>
+            <Button size="sm" onClick={() => setSummaryOpen(true)}>
+              <FileText className="mr-2 h-4 w-4" />
+              Generate one-page summary
+            </Button>
+          </div>
         )}
       </div>
+
+      {decision && (
+        <DecisionSummaryDialog
+          open={summaryOpen}
+          onOpenChange={setSummaryOpen}
+          result={result}
+          index={index}
+          pm={pm}
+          decision={decision}
+        />
+      )}
     </div>
   );
 }
