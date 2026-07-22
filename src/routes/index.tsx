@@ -41,6 +41,7 @@ import {
   type Opportunity,
 } from "@/lib/cluster.functions";
 import { DEMO_FEEDBACK } from "@/lib/demo-feedback";
+import { DecisionSummaryDialog } from "@/components/decision-summary";
 
 export const Route = createFileRoute("/")({
   head: () => ({
