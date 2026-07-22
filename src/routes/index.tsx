@@ -263,41 +263,72 @@ const STEP_ORDER: {
   { kinds: ["detail"], label: "Why it matters", question: "Why does this opportunity matter?" },
 ];
 
+function PrismMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className={cn("h-5 w-5", className)}
+    >
+      <defs>
+        <linearGradient id="prism-mark" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="currentColor" stopOpacity="0.9" />
+          <stop offset="1" stopColor="currentColor" stopOpacity="0.55" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M12 3 L21 20 H3 Z"
+        fill="none"
+        stroke="url(#prism-mark)"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 3 L12 20"
+        stroke="currentColor"
+        strokeOpacity="0.5"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function FlowStepper({ screen }: { screen: Screen }) {
   const activeIndex = STEP_ORDER.findIndex((s) => s.kinds.includes(screen.kind));
   const active = STEP_ORDER[activeIndex];
   return (
-    <div className="border-b border-border/60 bg-card/40 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3 text-xs">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <span className="font-semibold tracking-tight">Signal</span>
-          <span className="hidden text-muted-foreground sm:inline">·</span>
-          <span className="hidden text-muted-foreground sm:inline">
-            Product Prioritization Workflow
+    <div className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-6 py-3.5 text-xs">
+        <div className="flex items-center gap-2.5">
+          <PrismMark className="h-5 w-5 text-primary" />
+          <span className="text-[15px] font-semibold tracking-tight">Prism</span>
+          <span className="hidden text-muted-foreground/70 sm:inline">·</span>
+          <span className="hidden text-[11px] font-medium tracking-wide text-muted-foreground sm:inline">
+            Turn customer conversations into confident product decisions
           </span>
         </div>
-        <div className="ml-auto hidden items-center gap-2 md:flex">
+        <div className="ml-auto hidden items-center gap-1.5 md:flex">
           {STEP_ORDER.map((s, i) => (
-            <div key={s.label} className="flex items-center gap-2">
+            <div key={s.label} className="flex items-center gap-1.5">
               <div
                 className={cn(
-                  "flex h-2 w-2 rounded-full",
+                  "flex h-1.5 w-1.5 rounded-full transition-colors",
                   i < activeIndex && "bg-primary/60",
-                  i === activeIndex && "bg-primary",
-                  i > activeIndex && "bg-muted-foreground/30",
+                  i === activeIndex && "bg-primary shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_20%,transparent)]",
+                  i > activeIndex && "bg-muted-foreground/25",
                 )}
               />
               <span
                 className={cn(
-                  "font-medium",
-                  i === activeIndex ? "text-foreground" : "text-muted-foreground",
+                  "text-[11px] font-medium tracking-wide transition-colors",
+                  i === activeIndex ? "text-foreground" : "text-muted-foreground/70",
                 )}
               >
                 {s.label}
               </span>
               {i < STEP_ORDER.length - 1 && (
-                <div className="mx-1 h-px w-6 bg-border" />
+                <div className="mx-1 h-px w-5 bg-border/80" />
               )}
             </div>
           ))}
