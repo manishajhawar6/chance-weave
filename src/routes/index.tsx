@@ -608,19 +608,16 @@ function OpportunitiesScreen({
     setPm((prev) => ({ ...prev, [i]: { ...prev[i], ...patch } }));
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
+    <div className="mx-auto max-w-[1400px] px-6 py-10">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            Step 3 of 4
-          </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+          <h1 className="text-3xl font-semibold tracking-tight">
             What opportunities are emerging?
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             {result.opportunities.length} opportunities extracted from {result.feedback.length}{" "}
-            feedback items. Add your effort and strategic scores, then select 2+ to compare
-            side-by-side.
+            feedback items. AI supplied demand, evidence, and impact; add your effort and strategic
+            scores to see the final priority. Select 2+ to compare side-by-side.
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={onReset}>
@@ -644,98 +641,152 @@ function OpportunitiesScreen({
         </div>
       )}
 
-      <div className="mt-8 overflow-hidden rounded-xl border border-border/60">
-        <div className="grid grid-cols-[36px_minmax(0,2fr)_120px_100px_100px_140px_140px_120px] items-center gap-3 border-b border-border/60 bg-muted/30 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          <div />
-          <div>Opportunity</div>
-          <div className="flex items-center gap-1">
-            <Users className="h-3 w-3" /> Demand <AIChip>AI</AIChip>
+      <div className="mt-8 overflow-x-auto rounded-xl border border-border/60">
+        <div className="min-w-[1100px]">
+          <div className="grid grid-cols-[36px_minmax(0,2.2fr)_110px_minmax(0,1.4fr)_120px_240px_180px] items-center gap-3 border-b border-border/60 bg-muted/30 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div />
+            <div>Opportunity</div>
+            <div className="flex items-center gap-1">
+              <Users className="h-3 w-3" /> Demand <AIChip>AI</AIChip>
+            </div>
+            <div className="flex items-center gap-1">
+              <Quote className="h-3 w-3" /> Evidence <AIChip>AI</AIChip>
+            </div>
+            <div className="flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" /> Impact <AIChip>AI</AIChip>
+            </div>
+            <div className="flex items-center gap-1">
+              PM Inputs <PMChip>You</PMChip>
+            </div>
+            <div className="text-right">Final Priority</div>
           </div>
-          <div className="flex items-center gap-1">
-            <TrendingUp className="h-3 w-3" /> Impact <AIChip>AI</AIChip>
-          </div>
-          <div className="flex items-center gap-1">
-            <ShieldCheck className="h-3 w-3" /> Conf. <AIChip>AI</AIChip>
-          </div>
-          <div className="flex items-center gap-1">
-            Effort <PMChip>You</PMChip>
-          </div>
-          <div className="flex items-center gap-1">
-            Strategic <PMChip>You</PMChip>
-          </div>
-          <div className="text-right">Priority</div>
-        </div>
-        {rows.map(({ op, i, priority }) => {
-          const decision = decisions[i];
-          const pmi = pm[i] ?? {};
-          return (
-            <div
-              key={i}
-              className={cn(
-                "grid grid-cols-[36px_minmax(0,2fr)_120px_100px_100px_140px_140px_120px] items-center gap-3 border-b border-border/60 px-4 py-3 transition-colors last:border-b-0",
-                selected.has(i) && "bg-primary/5",
-              )}
-            >
-              <Checkbox
-                checked={selected.has(i)}
-                onCheckedChange={() => toggle(i)}
-                aria-label={`Select ${op.title}`}
-              />
-              <button
-                onClick={() => onOpen(i)}
-                className="text-left"
+          {rows.map(({ op, i, priority }) => {
+            const decision = decisions[i];
+            const pmi = pm[i] ?? {};
+            const bd = priorityBreakdown(op, pmi);
+            const quote = result.feedback[op.representative_quote_index];
+            return (
+              <div
+                key={i}
+                className={cn(
+                  "grid grid-cols-[36px_minmax(0,2.2fr)_110px_minmax(0,1.4fr)_120px_240px_180px] items-start gap-3 border-b border-border/60 px-4 py-3 transition-colors last:border-b-0",
+                  selected.has(i) && "bg-primary/5",
+                )}
               >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-semibold hover:underline">{op.title}</span>
-                  {decision && (
+                <Checkbox
+                  checked={selected.has(i)}
+                  onCheckedChange={() => toggle(i)}
+                  aria-label={`Select ${op.title}`}
+                  className="mt-1"
+                />
+                <button onClick={() => onOpen(i)} className="text-left">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold hover:underline">{op.title}</span>
+                    {decision && (
+                      <span
+                        className={cn(
+                          "rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
+                          DECISION_META[decision].tone,
+                        )}
+                      >
+                        {DECISION_META[decision].label}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                    {op.problem}
+                  </div>
+                </button>
+                <MeterCell value={op.customer_demand} />
+                <div className="text-xs text-muted-foreground">
+                  <div className="font-medium text-foreground">
+                    {op.evidence_indices.length} quote
+                    {op.evidence_indices.length === 1 ? "" : "s"}
+                  </div>
+                  {quote && (
+                    <div className="mt-1 line-clamp-2 italic">
+                      "{quote.slice(0, 90)}
+                      {quote.length > 90 ? "…" : ""}"
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-xs font-medium capitalize",
+                      IMPACT_TONE[op.business_impact],
+                    )}
+                  >
+                    {op.business_impact}
+                  </span>
+                  <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <ShieldCheck className="h-3 w-3" />
+                    {Math.round(op.confidence)}% conf.
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Effort
+                    </Label>
+                    <NumInput
+                      value={pmi.engineering_effort}
+                      onChange={(v) => updatePM(i, { engineering_effort: v })}
+                      min={1}
+                      max={10}
+                      placeholder="1-10"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Strategic
+                    </Label>
+                    <NumInput
+                      value={pmi.strategic_importance}
+                      onChange={(v) => updatePM(i, { strategic_importance: v })}
+                      min={1}
+                      max={5}
+                      placeholder="1-5"
+                    />
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-semibold tabular-nums">{priority}</div>
+                  <div className="mt-1 flex flex-wrap justify-end gap-1 text-[10px]">
+                    <span className="rounded border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-primary">
+                      AI {bd.ai}
+                    </span>
                     <span
                       className={cn(
-                        "rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
-                        DECISION_META[decision].tone,
+                        "rounded border px-1.5 py-0.5",
+                        bd.strategic > 0
+                          ? "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400"
+                          : "border-dashed border-border text-muted-foreground",
                       )}
                     >
-                      {DECISION_META[decision].label}
+                      + You {bd.strategic}
                     </span>
-                  )}
+                    {bd.effortPenalty > 0 && (
+                      <span className="rounded border border-amber-500/30 bg-amber-500/5 px-1.5 py-0.5 text-amber-600 dark:text-amber-400">
+                        − Effort {bd.effortPenalty}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
-                  {op.problem}
-                </div>
-              </button>
-              <MeterCell value={op.customer_demand} />
-              <div>
-                <span
-                  className={cn(
-                    "rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-                    IMPACT_TONE[op.business_impact],
-                  )}
-                >
-                  {op.business_impact}
-                </span>
               </div>
-              <MeterCell value={op.confidence} tone="muted" />
-              <NumInput
-                value={pmi.engineering_effort}
-                onChange={(v) => updatePM(i, { engineering_effort: v })}
-                min={1}
-                max={10}
-                placeholder="1-10"
-              />
-              <NumInput
-                value={pmi.strategic_importance}
-                onChange={(v) => updatePM(i, { strategic_importance: v })}
-                min={1}
-                max={5}
-                placeholder="1-5"
-              />
-              <div className="text-right">
-                <span className="text-lg font-semibold tabular-nums">{priority}</span>
-                <div className="text-[10px] text-muted-foreground">blended</div>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
+
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        Priority is not a single opaque score. It's{" "}
+        <span className="text-primary">AI-inferred customer signal</span> +{" "}
+        <span className="text-amber-600 dark:text-amber-400">your strategic importance</span> −{" "}
+        <span className="text-amber-600 dark:text-amber-400">your engineering effort</span>. Each
+        row shows the parts so you can see where the number comes from.
+      </p>
+
 
       <div className="sticky bottom-4 mt-6 flex justify-center">
         <div
