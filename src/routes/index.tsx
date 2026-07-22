@@ -46,20 +46,29 @@ import { DecisionSummaryDialog } from "@/components/decision-summary";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Signal — Compare feedback opportunities side-by-side" },
+      { title: "Prism — Turn customer conversations into confident product decisions" },
       {
         name: "description",
         content:
-          "Upload customer feedback CSVs. AI extracts opportunities with evidence and confidence; you add effort, strategic importance, and revenue to prioritize.",
+          "Prism turns scattered customer conversations into clear product opportunities, evidence-backed reasoning, and confident prioritization decisions.",
       },
-      { property: "og:title", content: "Signal — Prioritize opportunities from feedback" },
+      {
+        property: "og:title",
+        content: "Prism — Turn customer conversations into confident product decisions",
+      },
       {
         property: "og:description",
         content:
-          "A side-by-side comparison workspace that fuses AI-sourced customer signals with PM-scored effort and strategic importance.",
+          "AI reads customer conversations, surfaces opportunities with evidence, and hands the decision to the PM. Built for product managers who own the call.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Prism — Confident product decisions from customer conversations" },
+      {
+        name: "twitter:description",
+        content:
+          "Scattered feedback → AI reasoning → clear opportunities → confident prioritization. AI synthesizes; the PM decides.",
+      },
     ],
   }),
   component: Home,
