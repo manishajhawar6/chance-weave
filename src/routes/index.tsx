@@ -558,13 +558,24 @@ function PMChip({ children, className }: { children: React.ReactNode; className?
 
 // ---------- Priority scoring ----------
 
-function priorityScore(op: Opportunity, pm?: PMInput) {
-  // AI weight: customer_demand (0-100) * confidence (0-100) / 100 => 0-100
-  const aiSignal = (op.customer_demand * op.confidence) / 100;
-  // PM weight: strategic_importance (1-5) * 15 => 15-75; effort penalty
+function priorityBreakdown(op: Opportunity, pm?: PMInput) {
+  const impactBoost: Record<Opportunity["business_impact"], number> = {
+    low: 0,
+    medium: 5,
+    high: 12,
+    critical: 20,
+  };
+  const ai = Math.round(
+    ((op.customer_demand * op.confidence) / 100) * 0.6 + impactBoost[op.business_impact],
+  );
   const strategic = pm?.strategic_importance ? pm.strategic_importance * 15 : 0;
   const effortPenalty = pm?.engineering_effort ? pm.engineering_effort * 3 : 0;
-  return Math.max(0, Math.round(aiSignal * 0.6 + strategic - effortPenalty));
+  const total = Math.max(0, ai + strategic - effortPenalty);
+  return { ai, strategic, effortPenalty, total };
+}
+
+function priorityScore(op: Opportunity, pm?: PMInput) {
+  return priorityBreakdown(op, pm).total;
 }
 
 // ---------- Screen 3: Opportunities ----------
