@@ -23,6 +23,7 @@ import {
   Lock,
   Play,
   Compass,
+  FileText,
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
