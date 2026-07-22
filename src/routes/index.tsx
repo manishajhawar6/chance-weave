@@ -1005,11 +1005,14 @@ function CompareScreen({
             );
           })}
 
+          {/* ============ AI SIGNALS GROUP ============ */}
+          <CompareGroupHeader tone="ai" label="AI-inferred from customer feedback" columns={indices.length} />
+
           <CompareRowLabel tone="ai">
             <Users className="h-3.5 w-3.5" /> Customer demand
           </CompareRowLabel>
           {indices.map((i) => (
-            <CompareCell key={`d-${i}`}>
+            <CompareCell key={`d-${i}`} tone="ai">
               <MeterCell value={result.opportunities[i].customer_demand} />
             </CompareCell>
           ))}
@@ -1020,7 +1023,7 @@ function CompareScreen({
           {indices.map((i) => {
             const op = result.opportunities[i];
             return (
-              <CompareCell key={`bi-${i}`}>
+              <CompareCell key={`bi-${i}`} tone="ai">
                 <span
                   className={cn(
                     "rounded-full px-2 py-0.5 text-xs font-medium capitalize",
@@ -1041,7 +1044,7 @@ function CompareScreen({
             const op = result.opportunities[i];
             const quote = result.feedback[op.representative_quote_index];
             return (
-              <CompareCell key={`ev-${i}`}>
+              <CompareCell key={`ev-${i}`} tone="ai">
                 {quote && (
                   <blockquote className="border-l-2 border-primary/40 pl-2 text-xs italic text-muted-foreground">
                     "{quote.slice(0, 180)}
@@ -1061,18 +1064,21 @@ function CompareScreen({
           {indices.map((i) => {
             const op = result.opportunities[i];
             return (
-              <CompareCell key={`c-${i}`}>
+              <CompareCell key={`c-${i}`} tone="ai">
                 <MeterCell value={op.confidence} tone="muted" />
                 <p className="mt-2 text-xs text-muted-foreground">{op.confidence_rationale}</p>
               </CompareCell>
             );
           })}
 
+          {/* ============ PM INPUTS GROUP ============ */}
+          <CompareGroupHeader tone="pm" label="Your PM inputs — why leadership should care" columns={indices.length} />
+
           <CompareRowLabel tone="pm">
             <Target className="h-3.5 w-3.5" /> Engineering effort
           </CompareRowLabel>
           {indices.map((i) => (
-            <CompareCell key={`e-${i}`}>
+            <CompareCell key={`e-${i}`} tone="pm">
               <NumInput
                 value={pm[i]?.engineering_effort}
                 onChange={(v) => updatePM(i, { engineering_effort: v })}
@@ -1087,7 +1093,7 @@ function CompareScreen({
             <Rocket className="h-3.5 w-3.5" /> Strategic importance
           </CompareRowLabel>
           {indices.map((i) => (
-            <CompareCell key={`s-${i}`}>
+            <CompareCell key={`s-${i}`} tone="pm">
               <NumInput
                 value={pm[i]?.strategic_importance}
                 onChange={(v) => updatePM(i, { strategic_importance: v })}
@@ -1105,7 +1111,7 @@ function CompareScreen({
             </span>
           </CompareRowLabel>
           {indices.map((i) => (
-            <CompareCell key={`r-${i}`}>
+            <CompareCell key={`r-${i}`} tone="pm">
               <Input
                 value={pm[i]?.revenue_opportunity ?? ""}
                 placeholder="e.g. $40k ARR at risk"
@@ -1114,13 +1120,44 @@ function CompareScreen({
               />
             </CompareCell>
           ))}
+        </div>
+      </div>
 
-          <CompareRowLabel>Blended priority</CompareRowLabel>
+      {/* ============ PRIORITY RECOMMENDATION — outcome band, distinct from column grid ============ */}
+      <div className="mt-8 rounded-2xl border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="rounded-md bg-primary/20 p-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-widest text-primary">
+              Priority recommendation
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Emerges from both groups above — evidence is what carries this forward, not the
+              number.
+            </div>
+          </div>
+        </div>
+        <div
+          className="mt-5 grid gap-4"
+          style={{ gridTemplateColumns: `220px repeat(${indices.length}, minmax(260px, 1fr))` }}
+        >
+          <div className="text-xs text-muted-foreground">
+            AI signal + your strategic − your effort
+          </div>
           {indices.map((i, k) => {
             const p = priorities[k];
             const winner = p === Math.max(...priorities) && priorities.length > 1;
+            const bd = priorityBreakdown(result.opportunities[i], pm[i]);
             return (
-              <CompareCell key={`p-${i}`}>
+              <div
+                key={`p-${i}`}
+                className={cn(
+                  "rounded-lg border bg-card p-4",
+                  winner ? "border-primary/60 shadow-sm" : "border-border/60",
+                )}
+              >
                 <div className="flex items-baseline gap-2">
                   <span
                     className={cn(
@@ -1142,7 +1179,27 @@ function CompareScreen({
                     style={{ width: `${(p / maxPriority) * 100}%` }}
                   />
                 </div>
-              </CompareCell>
+                <div className="mt-3 flex flex-wrap gap-1 text-[10px]">
+                  <span className="rounded border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-primary">
+                    AI {bd.ai}
+                  </span>
+                  <span
+                    className={cn(
+                      "rounded border px-1.5 py-0.5",
+                      bd.strategic > 0
+                        ? "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400"
+                        : "border-dashed border-border text-muted-foreground",
+                    )}
+                  >
+                    + You {bd.strategic}
+                  </span>
+                  {bd.effortPenalty > 0 && (
+                    <span className="rounded border border-amber-500/30 bg-amber-500/5 px-1.5 py-0.5 text-amber-600 dark:text-amber-400">
+                      − Effort {bd.effortPenalty}
+                    </span>
+                  )}
+                </div>
+              </div>
             );
           })}
         </div>
