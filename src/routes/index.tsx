@@ -483,17 +483,57 @@ function UploadScreen({
 
 // The AI request is running in the background; this screen visualises the metaphor:
 // individual signal tokens appear, then get grouped and named into an opportunity.
-const CLUSTER_DEMO: { name: string; signals: string[] }[] = [
-  { name: "Enterprise Readiness", signals: ["SSO", "SAML", "SCIM", "SOC 2", "Private VPC", "Audit logs", "RBAC"] },
-  { name: "Mobile Reliability", signals: ["iOS crash", "Android parity", "Push notifications", "App freeze"] },
-  { name: "Search Improvements", signals: ["Full-text", "PDF indexing", "Filters", "Fuzzy typos"] },
-  { name: "Integrations", signals: ["Webhooks", "Zapier triggers", "API rate limits"] },
+// Each step reveals one customer's words. After a group's customers are shown, the
+// AI "pauses" and then resolves a pattern name — mirroring a reasoning trace.
+const CLUSTER_DEMO: {
+  name: string;
+  customers: { id: number; quote: string }[];
+}[] = [
+  {
+    name: "Enterprise Readiness",
+    customers: [
+      { id: 1, quote: "Need SSO" },
+      { id: 7, quote: "Need Okta" },
+      { id: 15, quote: "Need SCIM" },
+      { id: 31, quote: "Need SOC 2" },
+    ],
+  },
+  {
+    name: "Mobile Reliability",
+    customers: [
+      { id: 4, quote: "iOS keeps crashing" },
+      { id: 12, quote: "Android is way behind" },
+      { id: 22, quote: "Push notifications never arrive" },
+    ],
+  },
+  {
+    name: "Search Improvements",
+    customers: [
+      { id: 6, quote: "Search misses PDFs" },
+      { id: 18, quote: "No fuzzy match for typos" },
+      { id: 27, quote: "Need better filters" },
+    ],
+  },
 ];
+
+type StageState = "queued" | "revealing" | "pausing" | "named";
+function stageAt(groupIdx: number, tick: number): { state: StageState; shown: number } {
+  let offset = 0;
+  for (let i = 0; i < groupIdx; i++) {
+    offset += CLUSTER_DEMO[i].customers.length + 2; // customers + pause + name
+  }
+  const local = tick - offset;
+  const size = CLUSTER_DEMO[groupIdx].customers.length;
+  if (local <= 0) return { state: "queued", shown: 0 };
+  if (local <= size) return { state: "revealing", shown: local };
+  if (local === size + 1) return { state: "pausing", shown: size };
+  return { state: "named", shown: size };
+}
 
 function ProcessingScreen({ feedback }: { feedback: string[] }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setTick((n) => n + 1), 650);
+    const t = setInterval(() => setTick((n) => n + 1), 850);
     return () => clearInterval(t);
   }, []);
 
@@ -503,17 +543,18 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
         What patterns is AI discovering?
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Reading {feedback.length} feedback items. Watch individual signals get grouped into named
-        opportunities — the same shape the ranking view will use.
+        Reading {feedback.length} customer conversations. Watch individual voices come in, then the
+        pattern resolve.
       </p>
 
-      <div className="mt-8 space-y-4">
+      <div className="mt-8 space-y-6">
         {CLUSTER_DEMO.map((group, gi) => {
-          // Reveal signals progressively across all groups.
-          const startedAt = gi * 3;
-          const shownSignals = Math.max(0, Math.min(group.signals.length, tick - startedAt));
-          const named = tick >= startedAt + group.signals.length + 1;
-          const active = shownSignals > 0 && !named;
+          const { state, shown } = stageAt(gi, tick);
+          const named = state === "named";
+          const pausing = state === "pausing";
+          const revealing = state === "revealing";
+          const active = revealing || pausing;
+
           return (
             <Card
               key={group.name}
@@ -523,61 +564,65 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
                   ? "border-primary/40 bg-primary/5"
                   : active
                     ? "border-border/80"
-                    : "border-border/40 bg-muted/20",
+                    : "border-border/40 bg-muted/20 opacity-70",
               )}
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-2">
-                  {named ? (
-                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                      <Check className="h-3.5 w-3.5" />
-                    </div>
-                  ) : active ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                  ) : (
-                    <div className="h-5 w-5 rounded-full border-2 border-dashed border-muted-foreground/40" />
-                  )}
-                  <span
-                    className={cn(
-                      "text-xs font-medium uppercase tracking-wider",
-                      named ? "text-primary" : "text-muted-foreground",
-                    )}
-                  >
-                    {named ? "Opportunity" : active ? "Clustering signals" : "Queued"}
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest">
+                {named ? (
+                  <span className="flex items-center gap-1.5 text-primary">
+                    <Check className="h-3.5 w-3.5" />
+                    Pattern identified
                   </span>
-                </div>
-                <div className="flex flex-1 flex-wrap items-center gap-1.5">
-                  {group.signals.slice(0, shownSignals).map((sig) => (
-                    <span
-                      key={sig}
-                      className={cn(
-                        "rounded-md border px-2 py-0.5 text-xs transition-colors",
-                        named
-                          ? "border-primary/30 bg-primary/10 text-primary"
-                          : "border-border bg-card text-foreground",
-                      )}
-                    >
-                      {sig}
-                    </span>
-                  ))}
-                  {shownSignals < group.signals.length && active && (
-                    <span className="text-xs text-muted-foreground">…</span>
-                  )}
-                </div>
-                {named && (
-                  <div className="flex items-center gap-2">
-                    <ArrowLeft className="h-4 w-4 rotate-180 text-primary" />
-                    <span className="text-sm font-semibold text-primary">{group.name}</span>
-                  </div>
+                ) : active ? (
+                  <span className="flex items-center gap-1.5 text-foreground">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                    Listening to customers
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">Queued</span>
                 )}
               </div>
+
+              <div className="mt-3 space-y-2">
+                {group.customers.slice(0, shown).map((c) => (
+                  <div
+                    key={c.id}
+                    className="flex items-start gap-3 rounded-md border border-border/60 bg-card px-3 py-2 text-sm animate-in fade-in slide-in-from-left-2"
+                  >
+                    <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Customer {c.id}
+                    </span>
+                    <span className="text-foreground">{c.quote}</span>
+                  </div>
+                ))}
+                {shown === 0 && !named && (
+                  <div className="text-xs italic text-muted-foreground">Waiting…</div>
+                )}
+              </div>
+
+              {pausing && (
+                <div className="mt-4 flex items-center gap-2 text-sm italic text-muted-foreground animate-pulse">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  These appear to describe…
+                </div>
+              )}
+
+              {named && (
+                <div className="mt-4 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 animate-in fade-in zoom-in-95">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="text-xs uppercase tracking-widest text-primary">
+                    These appear to describe
+                  </span>
+                  <span className="text-base font-semibold text-primary">{group.name}</span>
+                </div>
+              )}
             </Card>
           );
         })}
       </div>
 
       <p className="mt-8 text-center text-xs text-muted-foreground">
-        AI is running on the server · results appear as soon as clustering completes
+        AI is running on the server · your real results appear as soon as clustering completes
       </p>
     </div>
   );
@@ -1308,33 +1353,40 @@ function DetailScreen({
   onBack: () => void;
 }) {
   const op = result.opportunities[index];
-  const priority = priorityScore(op, pm);
+  const bd = priorityBreakdown(op, pm);
   const [summaryOpen, setSummaryOpen] = useState(false);
   const evidence = useMemo(
     () =>
       op.evidence_indices
         .map((i) => ({ i, text: result.feedback[i] }))
-        .filter((e) => typeof e.text === "string"),
+        .filter((e): e is { i: number; text: string } => typeof e.text === "string"),
     [op, result.feedback],
   );
+  const representative = evidence.find((e) => e.i === op.representative_quote_index) ?? evidence[0];
   const patch = (p: Partial<PMInput>) => setPm({ ...pm, ...p });
 
+  const confidenceTier =
+    op.confidence >= 75 ? "High" : op.confidence >= 50 ? "Moderate" : "Emerging";
+  const missingPmInputs: string[] = [];
+  if (!pm?.engineering_effort) missingPmInputs.push("engineering effort");
+  if (!pm?.strategic_importance) missingPmInputs.push("strategic importance");
+
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
+    <div className="mx-auto max-w-4xl px-6 py-8">
       <Button variant="ghost" size="sm" onClick={onBack} className="mb-4 -ml-2">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to opportunities
       </Button>
 
+      {/* Memo header */}
       <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-        Why it matters
+        Priority brief
       </p>
-      <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-        Why does <span className="text-primary">{op.title}</span> matter?
-      </h1>
-      <p className="mt-3 max-w-3xl text-base text-muted-foreground">{op.problem}</p>
-
-      <div className="mt-6 flex flex-wrap gap-2">
+      <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{op.title}</h1>
+      <p className="mt-3 max-w-3xl text-base leading-relaxed text-muted-foreground">
+        {op.problem}
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2">
         {op.recurring_themes.map((t) => (
           <Badge key={t} variant="secondary" className="text-xs">
             <Layers className="mr-1 h-3 w-3" />
@@ -1343,137 +1395,190 @@ function DetailScreen({
         ))}
       </div>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2">
-        <SignalCard
-          source="ai"
-          icon={Users}
-          title="Customer demand"
-          value={`${Math.round(op.customer_demand)} / 100`}
-          rationale={`${op.evidence_indices.length} feedback items support this pattern.`}
-        >
-          <MeterCell value={op.customer_demand} />
-        </SignalCard>
-        <SignalCard
-          source="ai"
-          icon={TrendingUp}
-          title="Business impact"
-          value={op.business_impact}
-          rationale={op.business_impact_rationale}
-        >
+      {/* Section 1 — What customers are telling us */}
+      <MemoSection
+        source="ai"
+        eyebrow="Section 1"
+        title="What customers are telling us"
+        lede={`${op.evidence_indices.length} customer${op.evidence_indices.length === 1 ? "" : "s"} in the analyzed feedback raised this pattern${representative ? `. One voice captures it:` : "."}`}
+      >
+        {representative && (
+          <blockquote className="mt-3 border-l-2 border-primary/50 pl-4 text-base italic leading-relaxed text-foreground">
+            "{representative.text}"
+            <div className="mt-1 not-italic text-[11px] uppercase tracking-widest text-muted-foreground">
+              Customer #{representative.i + 1} · representative
+            </div>
+          </blockquote>
+        )}
+        <div className="mt-4">
+          <div className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Every voice behind this pattern
+          </div>
+          <ScrollArea className="max-h-[280px] rounded-lg border border-border/60">
+            <ul className="divide-y divide-border/60">
+              {evidence.map((e) => (
+                <li key={e.i} className="flex gap-3 px-4 py-2.5">
+                  <span className="mt-0.5 shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    #{e.i + 1}
+                  </span>
+                  <p className="text-sm leading-relaxed">{e.text}</p>
+                </li>
+              ))}
+              {evidence.length === 0 && (
+                <li className="px-4 py-6 text-sm text-muted-foreground">No evidence linked.</li>
+              )}
+            </ul>
+          </ScrollArea>
+        </div>
+      </MemoSection>
+
+      {/* Section 2 — Why this matters to the business */}
+      <MemoSection
+        source="ai"
+        eyebrow="Section 2"
+        title="Why this matters to the business"
+        lede={op.business_impact_rationale}
+      >
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <span
             className={cn(
-              "inline-block rounded-full px-3 py-1 text-sm font-medium capitalize",
+              "inline-flex items-center rounded-full px-3 py-1 text-sm font-medium capitalize",
               IMPACT_TONE[op.business_impact],
             )}
           >
-            {op.business_impact}
+            {op.business_impact} business impact
           </span>
-        </SignalCard>
-        <SignalCard
-          source="ai"
-          icon={ShieldCheck}
-          title="Confidence"
-          value={`${Math.round(op.confidence)} / 100`}
-          rationale={op.confidence_rationale}
-        >
-          <MeterCell value={op.confidence} tone="muted" />
-        </SignalCard>
-        <SignalCard
-          source="pm"
-          icon={UserIcon}
-          title="Your inputs"
-          value="Why leadership should care"
-          rationale="These signals cannot be inferred from feedback alone."
-        >
-          <div className="mt-2 space-y-3">
-            <div>
-              <Label className="text-xs">Engineering effort (1-10)</Label>
-              <NumInput
-                value={pm?.engineering_effort}
-                onChange={(v) => patch({ engineering_effort: v })}
-                min={1}
-                max={10}
-                placeholder="Story-point-ish estimate"
-              />
-            </div>
-            <div>
-              <Label className="text-xs">Strategic importance (1-5)</Label>
-              <NumInput
-                value={pm?.strategic_importance}
-                onChange={(v) => patch({ strategic_importance: v })}
-                min={1}
-                max={5}
-                placeholder="Alignment with company strategy"
-              />
-            </div>
-            <div>
-              <Label className="text-xs">Revenue opportunity (optional)</Label>
-              <Input
-                value={pm?.revenue_opportunity ?? ""}
-                onChange={(e) => patch({ revenue_opportunity: e.target.value })}
-                placeholder="e.g. $40k ARR at risk"
-                className="h-8 border-amber-500/30 bg-amber-500/5 text-sm"
-              />
-            </div>
-          </div>
-        </SignalCard>
-      </div>
-
-      <Card className="mt-6 border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="rounded-md bg-primary/20 p-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-            </div>
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-widest text-primary">
-                Priority recommendation
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Emerges from AI customer signal + your effort & strategic scoring — not a single
-                opaque score.
-              </div>
-            </div>
-          </div>
-          <div className="text-4xl font-semibold tabular-nums">{priority}</div>
+          <span className="text-sm text-muted-foreground">
+            Customer-demand signal: <span className="font-semibold text-foreground">{Math.round(op.customer_demand)} / 100</span>
+          </span>
         </div>
-      </Card>
+        <div className="mt-4">
+          <Label className="text-xs">
+            Revenue opportunity <span className="text-muted-foreground">(optional — why leadership should care)</span>
+          </Label>
+          <Input
+            value={pm?.revenue_opportunity ?? ""}
+            onChange={(e) => patch({ revenue_opportunity: e.target.value })}
+            placeholder="e.g. $40k ARR at risk across 3 enterprise renewals"
+            className="mt-1 h-9 border-amber-500/30 bg-amber-500/5 text-sm"
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            <PMChip>You</PMChip> <span className="ml-1">The AI can count mentions; it can't count dollars.</span>
+          </p>
+        </div>
+      </MemoSection>
 
-      <div className="mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          Evidence · why should I believe this?
-        </h2>
-        <ScrollArea className="mt-3 max-h-[360px] rounded-lg border border-border/60">
-          <ul className="divide-y divide-border/60">
-            {evidence.map((e) => (
-              <li key={e.i} className="flex gap-3 px-4 py-3">
-                <span className="mt-0.5 shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
-                  #{e.i + 1}
-                </span>
-                <p className="text-sm leading-relaxed">{e.text}</p>
-                {e.i === op.representative_quote_index && (
-                  <Badge variant="secondary" className="ml-auto self-start text-[10px]">
-                    representative
-                  </Badge>
-                )}
-              </li>
-            ))}
-            {evidence.length === 0 && (
-              <li className="px-4 py-6 text-sm text-muted-foreground">No evidence linked.</li>
-            )}
-          </ul>
-        </ScrollArea>
-      </div>
+      {/* Section 3 — What's driving this recommendation */}
+      <MemoSection
+        source="mixed"
+        eyebrow="Section 3"
+        title="What's driving this recommendation"
+        lede="Priority emerges from AI-observed customer signal combined with your effort and strategic scoring — not a single opaque number."
+      >
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <PMChip>You</PMChip>
+              <span className="text-xs font-semibold uppercase tracking-wider">Your inputs</span>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs">Engineering effort (1-10)</Label>
+                <NumInput
+                  value={pm?.engineering_effort}
+                  onChange={(v) => patch({ engineering_effort: v })}
+                  min={1}
+                  max={10}
+                  placeholder="Story-point-ish estimate"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Strategic importance (1-5)</Label>
+                <NumInput
+                  value={pm?.strategic_importance}
+                  onChange={(v) => patch({ strategic_importance: v })}
+                  min={1}
+                  max={5}
+                  placeholder="Alignment with company strategy"
+                />
+              </div>
+            </div>
+          </div>
 
-      <div className="mt-10 rounded-xl border border-border/60 bg-card p-6">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          Decision
-        </p>
-        <h2 className="mt-1 text-xl font-semibold">What should I do next?</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Pick one. You can revisit and change it anytime.
-        </p>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-lg border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-4">
+            <div className="mb-3 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+                Priority recommendation
+              </span>
+            </div>
+            <div className="text-4xl font-semibold tabular-nums">{bd.total}</div>
+            <div className="mt-3 space-y-1 text-xs">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">AI customer signal</span>
+                <span className="font-mono">+{bd.ai}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Your strategic boost</span>
+                <span className="font-mono">+{bd.strategic}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Effort penalty</span>
+                <span className="font-mono">−{bd.effortPenalty}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </MemoSection>
+
+      {/* Section 4 — What still needs validation */}
+      <MemoSection
+        source="ai"
+        eyebrow="Section 4"
+        title="What still needs validation"
+        lede={op.confidence_rationale}
+      >
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-3 py-1">
+            <ShieldCheck className="h-4 w-4 text-primary" />
+            <span className="font-semibold">{confidenceTier}</span>
+            <span className="text-muted-foreground">confidence · {Math.round(op.confidence)} / 100</span>
+          </span>
+        </div>
+        <ul className="mt-4 space-y-1.5 text-sm text-muted-foreground">
+          {op.confidence < 75 && (
+            <li className="flex items-start gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/60" />
+              Validate with a broader sample before committing significant engineering.
+            </li>
+          )}
+          {missingPmInputs.length > 0 && (
+            <li className="flex items-start gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+              Add {missingPmInputs.join(" and ")} above so the priority reflects your context.
+            </li>
+          )}
+          {op.business_impact === "critical" || op.business_impact === "high" ? (
+            <li className="flex items-start gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/60" />
+              Confirm the impact rationale with a customer-facing team before the roadmap meeting.
+            </li>
+          ) : null}
+          <li className="flex items-start gap-2">
+            <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-foreground/60" />
+            AI surfaces patterns from what customers wrote — silent segments won't appear here.
+          </li>
+        </ul>
+      </MemoSection>
+
+      {/* Section 5 — Decision */}
+      <MemoSection
+        source="pm"
+        eyebrow="Section 5"
+        title="Decision"
+        lede="Pick one. You can revisit and change it anytime — this is your call, not the AI's."
+      >
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {(Object.keys(DECISION_META) as Decision[]).map((d) => {
             const meta = DECISION_META[d];
             const Icon = meta.icon;
@@ -1513,7 +1618,7 @@ function DetailScreen({
             </Button>
           </div>
         )}
-      </div>
+      </MemoSection>
 
       {decision && (
         <DecisionSummaryDialog
@@ -1526,6 +1631,42 @@ function DetailScreen({
         />
       )}
     </div>
+  );
+}
+
+function MemoSection({
+  source,
+  eyebrow,
+  title,
+  lede,
+  children,
+}: {
+  source: "ai" | "pm" | "mixed";
+  eyebrow: string;
+  title: string;
+  lede: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <section className="mt-10 border-t border-border/60 pt-8">
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          {eyebrow}
+        </span>
+        {source === "ai" && <AIChip>AI</AIChip>}
+        {source === "pm" && <PMChip>You</PMChip>}
+        {source === "mixed" && (
+          <>
+            <AIChip>AI</AIChip>
+            <span className="text-xs text-muted-foreground">+</span>
+            <PMChip>You</PMChip>
+          </>
+        )}
+      </div>
+      <h2 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">{title}</h2>
+      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">{lede}</p>
+      {children}
+    </section>
   );
 }
 
