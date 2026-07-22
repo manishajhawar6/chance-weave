@@ -967,8 +967,10 @@ function CompareScreen({
         Comparing {indices.length} opportunities
       </h1>
       <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-        AI-sourced signals are on the top rows; your inputs are on the bottom rows. The blended
-        priority combines both.
+        Two clearly-separated inputs feed the recommendation:{" "}
+        <span className="text-primary">what AI inferred from customer feedback</span> and{" "}
+        <span className="text-amber-600 dark:text-amber-400">what you contribute as PM</span>. The
+        priority recommendation lives underneath both — never as just another column.
       </p>
 
       <div className="mt-8 overflow-x-auto">
