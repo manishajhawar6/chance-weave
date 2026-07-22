@@ -162,7 +162,7 @@ function Home() {
   }, [runCluster]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="prism-canvas min-h-screen text-foreground antialiased">
       <Toaster position="top-center" richColors />
       <FlowStepper screen={screen} />
       {screen.kind === "upload" && <UploadScreen onFile={handleFile} onDemo={handleDemo} />}
