@@ -1416,14 +1416,20 @@ function DetailScreen({
         </SignalCard>
       </div>
 
-      <Card className="mt-6 border-primary/30 bg-primary/5 p-5">
+      <Card className="mt-6 border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Blended priority
+          <div className="flex items-center gap-3">
+            <div className="rounded-md bg-primary/20 p-2">
+              <Sparkles className="h-4 w-4 text-primary" />
             </div>
-            <div className="text-xs text-muted-foreground">
-              Combines AI customer signal with your effort & strategic scoring.
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-widest text-primary">
+                Priority recommendation
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Emerges from AI customer signal + your effort & strategic scoring — not a single
+                opaque score.
+              </div>
             </div>
           </div>
           <div className="text-4xl font-semibold tabular-nums">{priority}</div>
