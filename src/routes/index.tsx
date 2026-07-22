@@ -1304,7 +1304,7 @@ function DetailScreen({
 
       <div className="mt-10 rounded-xl border border-border/60 bg-card p-6">
         <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          Step 5 · Decision
+          Decision
         </p>
         <h2 className="mt-1 text-xl font-semibold">What should I do next?</h2>
         <p className="mt-1 text-sm text-muted-foreground">
