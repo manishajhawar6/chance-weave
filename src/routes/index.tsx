@@ -46,20 +46,29 @@ import { DecisionSummaryDialog } from "@/components/decision-summary";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Signal — Compare feedback opportunities side-by-side" },
+      { title: "Prism — Turn customer conversations into confident product decisions" },
       {
         name: "description",
         content:
-          "Upload customer feedback CSVs. AI extracts opportunities with evidence and confidence; you add effort, strategic importance, and revenue to prioritize.",
+          "Prism turns scattered customer conversations into clear product opportunities, evidence-backed reasoning, and confident prioritization decisions.",
       },
-      { property: "og:title", content: "Signal — Prioritize opportunities from feedback" },
+      {
+        property: "og:title",
+        content: "Prism — Turn customer conversations into confident product decisions",
+      },
       {
         property: "og:description",
         content:
-          "A side-by-side comparison workspace that fuses AI-sourced customer signals with PM-scored effort and strategic importance.",
+          "AI reads customer conversations, surfaces opportunities with evidence, and hands the decision to the PM. Built for product managers who own the call.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Prism — Confident product decisions from customer conversations" },
+      {
+        name: "twitter:description",
+        content:
+          "Scattered feedback → AI reasoning → clear opportunities → confident prioritization. AI synthesizes; the PM decides.",
+      },
     ],
   }),
   component: Home,
@@ -153,7 +162,7 @@ function Home() {
   }, [runCluster]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="prism-canvas min-h-screen text-foreground antialiased">
       <Toaster position="top-center" richColors />
       <FlowStepper screen={screen} />
       {screen.kind === "upload" && <UploadScreen onFile={handleFile} onDemo={handleDemo} />}
@@ -254,41 +263,72 @@ const STEP_ORDER: {
   { kinds: ["detail"], label: "Why it matters", question: "Why does this opportunity matter?" },
 ];
 
+function PrismMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className={cn("h-5 w-5", className)}
+    >
+      <defs>
+        <linearGradient id="prism-mark" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="currentColor" stopOpacity="0.9" />
+          <stop offset="1" stopColor="currentColor" stopOpacity="0.55" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M12 3 L21 20 H3 Z"
+        fill="none"
+        stroke="url(#prism-mark)"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 3 L12 20"
+        stroke="currentColor"
+        strokeOpacity="0.5"
+        strokeWidth="1.1"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function FlowStepper({ screen }: { screen: Screen }) {
   const activeIndex = STEP_ORDER.findIndex((s) => s.kinds.includes(screen.kind));
   const active = STEP_ORDER[activeIndex];
   return (
-    <div className="border-b border-border/60 bg-card/40 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-6 py-3 text-xs">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <span className="font-semibold tracking-tight">Signal</span>
-          <span className="hidden text-muted-foreground sm:inline">·</span>
-          <span className="hidden text-muted-foreground sm:inline">
-            Product Prioritization Workflow
+    <div className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-6 py-3.5 text-xs">
+        <div className="flex items-center gap-2.5">
+          <PrismMark className="h-5 w-5 text-primary" />
+          <span className="text-[15px] font-semibold tracking-tight">Prism</span>
+          <span className="hidden text-muted-foreground/70 sm:inline">·</span>
+          <span className="hidden text-[11px] font-medium tracking-wide text-muted-foreground sm:inline">
+            Turn customer conversations into confident product decisions
           </span>
         </div>
-        <div className="ml-auto hidden items-center gap-2 md:flex">
+        <div className="ml-auto hidden items-center gap-1.5 md:flex">
           {STEP_ORDER.map((s, i) => (
-            <div key={s.label} className="flex items-center gap-2">
+            <div key={s.label} className="flex items-center gap-1.5">
               <div
                 className={cn(
-                  "flex h-2 w-2 rounded-full",
+                  "flex h-1.5 w-1.5 rounded-full transition-colors",
                   i < activeIndex && "bg-primary/60",
-                  i === activeIndex && "bg-primary",
-                  i > activeIndex && "bg-muted-foreground/30",
+                  i === activeIndex && "bg-primary shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_20%,transparent)]",
+                  i > activeIndex && "bg-muted-foreground/25",
                 )}
               />
               <span
                 className={cn(
-                  "font-medium",
-                  i === activeIndex ? "text-foreground" : "text-muted-foreground",
+                  "text-[11px] font-medium tracking-wide transition-colors",
+                  i === activeIndex ? "text-foreground" : "text-muted-foreground/70",
                 )}
               >
                 {s.label}
               </span>
               {i < STEP_ORDER.length - 1 && (
-                <div className="mx-1 h-px w-6 bg-border" />
+                <div className="mx-1 h-px w-5 bg-border/80" />
               )}
             </div>
           ))}
@@ -315,21 +355,27 @@ function UploadScreen({
 }) {
   const [dragging, setDragging] = useState(false);
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-49px)] max-w-4xl flex-col items-center px-6 py-12">
-      <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-primary">
-        <Sparkles className="h-3.5 w-3.5" />
-        Evidence-backed prioritization
+    <div className="mx-auto flex min-h-[calc(100vh-57px)] max-w-5xl flex-col items-center px-6 pb-24 pt-16 sm:pt-24">
+      <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border/70 bg-surface/70 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground shadow-elevate-1 backdrop-blur">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/50" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+        </span>
+        Prism · for product managers
       </div>
-      <h1 className="text-center text-4xl font-semibold tracking-tight sm:text-5xl">
-        Prioritize what to build next
-        <br />
-        with <span className="text-primary">evidence</span>, not intuition.
+
+      <h1 className="text-balance text-center text-[44px] font-semibold leading-[1.05] tracking-tight sm:text-6xl">
+        Turn customer conversations
+        <br className="hidden sm:block" />{" "}
+        into <span className="bg-gradient-to-r from-primary to-[oklch(0.66_0.2_285)] bg-clip-text text-transparent">confident</span> product decisions.
       </h1>
-      <p className="mt-5 max-w-2xl text-center text-base text-muted-foreground">
-        AI organizes customer demand, business signals, and supporting quotes into a comparison
-        workspace — so the roadmap decision you take into the next leadership meeting is one you
-        can defend line by line.
+      <p className="mt-6 max-w-xl text-balance text-center text-[15px] leading-relaxed text-muted-foreground sm:text-base">
+        Prism reads scattered customer conversations, surfaces the opportunities hiding inside, and
+        hands you the evidence to prioritize with conviction. AI synthesizes. You decide.
       </p>
+
+      {/* Transformation strip — the product promise in five seconds */}
+      <TransformationStrip />
 
       <label
         onDragOver={(e) => {
@@ -344,25 +390,19 @@ function UploadScreen({
           if (file) onFile(file);
         }}
         className={cn(
-          "mt-10 flex w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-10 transition-colors",
-          dragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50",
+          "group mt-10 flex w-full max-w-2xl cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-10 text-center transition-all",
+          dragging
+            ? "border-primary/70 bg-primary/[0.04] shadow-glow"
+            : "border-border/70 bg-surface/60 hover:border-primary/40 hover:bg-surface/80",
         )}
       >
-        <div className="rounded-full bg-primary/10 p-3">
-          <Upload className="h-6 w-6 text-primary" />
+        <div className="rounded-xl bg-primary/10 p-3 ring-1 ring-primary/15 transition-transform group-hover:scale-105">
+          <Upload className="h-5 w-5 text-primary" />
         </div>
-        <p className="text-sm font-medium">
-          Upload customer conversations to build evidence-backed product priorities
-        </p>
+        <p className="text-sm font-medium">Drop a CSV of customer conversations</p>
         <p className="text-xs text-muted-foreground">
-          Drop a CSV or click to browse · Auto-detects the feedback column · First 200 rows
+          Auto-detects the feedback column · First 200 rows · ~15s analysis
         </p>
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-3 text-[11px] text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <Loader2 className="h-3 w-3" />
-            Typical analysis time: ~15 seconds
-          </span>
-        </div>
         <input
           type="file"
           accept=".csv,text/csv"
@@ -375,109 +415,116 @@ function UploadScreen({
         />
       </label>
 
-      {/* Sample CSV preview — makes the interaction tangible */}
-      <div className="mt-4 w-full overflow-hidden rounded-lg border border-border/60 bg-muted/20">
-        <div className="flex items-center justify-between border-b border-border/60 bg-muted/40 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-          <span>Expected format · sample</span>
-          <span className="font-mono normal-case tracking-normal">feedback.csv</span>
-        </div>
-        <div className="grid grid-cols-[120px_1fr] gap-x-4 text-xs">
-          <div className="border-b border-border/60 bg-muted/30 px-3 py-1.5 font-semibold text-muted-foreground">
-            Customer
-          </div>
-          <div className="border-b border-border/60 bg-muted/30 px-3 py-1.5 font-semibold text-muted-foreground">
-            Feedback
-          </div>
-          <div className="px-3 py-1.5 font-mono text-muted-foreground">acme_corp</div>
-          <div className="px-3 py-1.5 text-foreground">
-            Can't roll out until you support SSO with Okta.
-          </div>
-          <div className="border-t border-border/40 px-3 py-1.5 font-mono text-muted-foreground">
-            northwind
-          </div>
-          <div className="border-t border-border/40 px-3 py-1.5 text-foreground">
-            Mobile app crashes on large documents.
-          </div>
-          <div className="border-t border-border/40 px-3 py-1.5 font-mono text-muted-foreground">
-            globex
-          </div>
-          <div className="border-t border-border/40 px-3 py-1.5 text-foreground">
-            Search doesn't index PDFs, which is where our content lives.
-          </div>
-        </div>
-      </div>
-
-      {/* Prominent demo path — likely the first thing an interviewer clicks */}
-      <div className="mt-6 w-full rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="rounded-md bg-primary/20 p-1.5">
-                <Play className="h-3.5 w-3.5 text-primary" />
-              </div>
-              <span className="text-sm font-semibold">See it work in one click</span>
+      {/* Prominent demo path — the first thing a recruiter clicks */}
+      <div className="mt-4 flex w-full max-w-2xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.08] via-primary/[0.04] to-transparent p-4 pl-5 shadow-elevate-1">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <div className="rounded-md bg-primary/15 p-1.5">
+              <Play className="h-3.5 w-3.5 text-primary" />
             </div>
-            <p className="mt-1 max-w-md text-xs text-muted-foreground">
-              30 synthetic customer comments across enterprise-readiness, mobile, search, and
-              integration asks. Nothing is uploaded — everything runs on the sample set.
-            </p>
+            <span className="text-sm font-semibold">See it in one click</span>
           </div>
-          <Button onClick={onDemo} size="lg" className="shrink-0">
-            <Play className="mr-2 h-4 w-4" />
-            Run synthetic demo
-          </Button>
+          <p className="mt-1 max-w-md text-xs text-muted-foreground">
+            30 synthetic customer conversations. Nothing uploaded — the flow runs on a sample set.
+          </p>
         </div>
+        <Button onClick={onDemo} size="lg" className="shrink-0 shadow-elevate-2">
+          <Play className="mr-2 h-4 w-4" />
+          Run synthetic demo
+        </Button>
       </div>
 
-      <div className="mt-10 grid w-full gap-4 sm:grid-cols-2">
-        <Card className="border-border/60 p-5">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
-            <Compass className="h-4 w-4" />
-            After analysis you'll discover
+
+      <div className="mt-12 grid w-full max-w-3xl gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-border/60 bg-surface/70 p-5">
+          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-primary">
+            <Compass className="h-3.5 w-3.5" />
+            You'll leave with
           </div>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-              Emerging product opportunities, ranked by evidence
+          <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-foreground/85">
+            <li className="flex items-start gap-2.5">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+              Opportunities ranked by real evidence
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-              Customer demand patterns and recurring themes
+            <li className="flex items-start gap-2.5">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+              Recurring themes and customer-demand patterns
             </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-              Business impact evidence with representative quotes
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-              Prioritization inputs you control (effort, strategy, revenue)
+            <li className="flex items-start gap-2.5">
+              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+              A priority brief you'd take into a roadmap meeting
             </li>
           </ul>
-        </Card>
-        <Card className="border-border/60 p-5">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <Lock className="h-4 w-4" />
+        </div>
+        <div className="rounded-xl border border-border/60 bg-surface/70 p-5">
+          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            <Lock className="h-3.5 w-3.5" />
             What you can trust
           </div>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li className="flex items-start gap-2">
-              <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-foreground/85">
+            <li className="flex items-start gap-2.5">
+              <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
               Your CSV stays within this analysis session
             </li>
-            <li className="flex items-start gap-2">
-              <Play className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              Synthetic demo available if you don't want to upload real data
+            <li className="flex items-start gap-2.5">
+              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+              Every claim links back to a customer quote
             </li>
-            <li className="flex items-start gap-2">
-              <UserIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              AI surfaces evidence — it never makes roadmap decisions for you
+            <li className="flex items-start gap-2.5">
+              <UserIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+              AI never makes the roadmap call — you do
             </li>
           </ul>
-        </Card>
+        </div>
       </div>
     </div>
   );
 }
+
+// A five-second visual answer to "what does Prism do?"
+function TransformationStrip() {
+  const steps: { icon: typeof Users; label: string; sub: string }[] = [
+    { icon: Users, label: "Scattered conversations", sub: "CSV of customer voices" },
+    { icon: Sparkles, label: "AI reasoning", sub: "Cluster · evidence · rationale" },
+    { icon: Layers, label: "Clear opportunities", sub: "Ranked, with sources" },
+    { icon: Rocket, label: "Confident decision", sub: "You own the call" },
+  ];
+  return (
+    <div className="mt-10 grid w-full max-w-3xl grid-cols-1 gap-2 rounded-2xl border border-border/60 bg-surface/60 p-2 shadow-elevate-1 sm:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]">
+      {steps.map((s, i) => {
+        const Icon = s.icon;
+        return (
+          <div key={s.label} className="contents">
+            <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
+              <div
+                className={cn(
+                  "grid h-8 w-8 shrink-0 place-items-center rounded-lg",
+                  i === 3
+                    ? "bg-primary text-primary-foreground shadow-elevate-2"
+                    : "bg-primary/10 text-primary",
+                )}
+              >
+                <Icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-[13px] font-medium leading-tight">{s.label}</div>
+                <div className="truncate text-[11px] text-muted-foreground">{s.sub}</div>
+              </div>
+            </div>
+            {i < steps.length - 1 && (
+              <div className="hidden items-center justify-center text-muted-foreground/50 sm:flex">
+                <svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden>
+                  <path d="M1 6 H16 M11 1 L16 6 L11 11" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 
 // ---------- Screen 2: Processing (live signal clustering) ----------
 
