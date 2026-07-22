@@ -20,6 +20,9 @@ import {
   Search,
   Eye,
   Pause,
+  Lock,
+  Play,
+  Compass,
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
@@ -36,6 +39,7 @@ import {
   type ClusterResult,
   type Opportunity,
 } from "@/lib/cluster.functions";
+import { DEMO_FEEDBACK } from "@/lib/demo-feedback";
 
 export const Route = createFileRoute("/")({
   head: () => ({
