@@ -88,6 +88,23 @@ function Home() {
   const [decisions, setDecisions] = useState<Record<number, Decision>>({});
   const cluster = useServerFn(clusterFeedback);
 
+  const runCluster = useCallback(
+    async (rows: string[]) => {
+      setScreen({ kind: "processing", feedback: rows });
+      setPm({});
+      setDecisions({});
+      try {
+        const result = await cluster({ data: { feedback: rows } });
+        setScreen({ kind: "opportunities", result });
+      } catch (err) {
+        console.error(err);
+        toast.error(err instanceof Error ? err.message : "AI analysis failed.");
+        setScreen({ kind: "upload" });
+      }
+    },
+    [cluster],
+  );
+
   const handleFile = useCallback(
     async (file: File) => {
       try {
@@ -120,26 +137,24 @@ function Home() {
           return;
         }
         if (rows.length > 200) rows = rows.slice(0, 200);
-
-        setScreen({ kind: "processing", feedback: rows });
-        setPm({});
-        setDecisions({});
-        const result = await cluster({ data: { feedback: rows } });
-        setScreen({ kind: "opportunities", result });
+        await runCluster(rows);
       } catch (err) {
         console.error(err);
-        toast.error(err instanceof Error ? err.message : "Failed to process CSV.");
-        setScreen({ kind: "upload" });
+        toast.error(err instanceof Error ? err.message : "Failed to read CSV.");
       }
     },
-    [cluster],
+    [runCluster],
   );
+
+  const handleDemo = useCallback(() => {
+    void runCluster(DEMO_FEEDBACK);
+  }, [runCluster]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Toaster position="top-center" richColors />
       <FlowStepper screen={screen} />
-      {screen.kind === "upload" && <UploadScreen onFile={handleFile} />}
+      {screen.kind === "upload" && <UploadScreen onFile={handleFile} onDemo={handleDemo} />}
       {screen.kind === "processing" && <ProcessingScreen feedback={screen.feedback} />}
       {screen.kind === "opportunities" && (
         <OpportunitiesScreen
