@@ -1485,8 +1485,8 @@ function OpportunitiesScreen({
             What opportunities are emerging?
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-            {result.opportunities.length} opportunities from {result.feedback.length} conversations.
-            Expand a row to see the evidence and add your PM inputs.
+            {result.opportunities.length} opportunities emerged from {result.feedback.length}{" "}
+            conversations. Open a row to read the evidence and score your side of the call.
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={onReset}>
