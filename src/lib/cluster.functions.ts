@@ -86,7 +86,7 @@ ${numbered}`;
         prompt,
         output: Output.object({ schema: OpportunitySchema }),
       });
-      return { ...sanitizeResult(output), feedback: data.feedback };
+      return { ...sanitizeResult(output), feedback: data.feedback.map(scrub) };
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error)) {
         try {
