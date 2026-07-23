@@ -543,9 +543,9 @@ function UploadScreen({
 function WorkspacePreview() {
   const { ref, inView } = useInView<HTMLDivElement>(0.15);
   const rows = [
-    { title: "Enterprise identity management", demand: 92, impact: "critical" as const, priority: 87 },
-    { title: "Admin permission management", demand: 74, impact: "high" as const, priority: 62 },
-    { title: "Historical decision search", demand: 51, impact: "medium" as const, priority: 38 },
+    { title: "Enterprise security & user management", demand: 92, impact: "critical" as const, priority: 87 },
+    { title: "Native integrations with existing tools", demand: 74, impact: "high" as const, priority: 62 },
+    { title: "Faster onboarding for new teams", demand: 51, impact: "medium" as const, priority: 38 },
   ];
   return (
     <div
