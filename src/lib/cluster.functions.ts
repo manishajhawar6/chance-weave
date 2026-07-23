@@ -91,7 +91,7 @@ ${numbered}`;
       if (NoObjectGeneratedError.isInstance(error)) {
         try {
           const parsed = OpportunitySchema.parse(JSON.parse(error.text ?? "{}"));
-          return { ...sanitizeResult(parsed), feedback: data.feedback };
+          return { ...sanitizeResult(parsed), feedback: data.feedback.map(scrub) };
         } catch {
           throw new Error("AI returned malformed output. Try again.");
         }
