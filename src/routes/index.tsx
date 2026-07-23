@@ -110,7 +110,7 @@ function Home() {
         setScreen({ kind: "opportunities", result });
       } catch (err) {
         console.error(err);
-        toast.error(err instanceof Error ? err.message : "AI analysis failed.");
+        toast.error(err instanceof Error ? err.message : "Something went wrong. Try again.");
         setScreen({ kind: "upload" });
       }
     },
@@ -145,14 +145,14 @@ function Home() {
           rows = arrays.flat().filter((v) => typeof v === "string" && v.trim().length > 0);
         }
         if (rows.length === 0) {
-          toast.error("No feedback rows found in that CSV.");
+          toast.error("No feedback rows in that CSV.");
           return;
         }
         if (rows.length > 200) rows = rows.slice(0, 200);
         await runCluster(rows);
       } catch (err) {
         console.error(err);
-        toast.error(err instanceof Error ? err.message : "Failed to read CSV.");
+        toast.error(err instanceof Error ? err.message : "Couldn't read that CSV.");
       }
     },
     [runCluster],
@@ -201,7 +201,7 @@ function Home() {
           decision={decisions[screen.index]}
           onDecide={(d) => {
             setDecisions((prev) => ({ ...prev, [screen.index]: d }));
-            toast.success(`Decision saved: ${DECISION_META[d].label}`);
+            toast.success(`Saved · ${DECISION_META[d].label}`);
           }}
           onBack={() => setScreen({ kind: "opportunities", result: screen.result })}
         />
@@ -418,9 +418,9 @@ function UploadScreen({
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-md">
           <div className="animate-prism-lift flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-primary/60 bg-surface/80 px-10 py-8 shadow-glow">
             <Upload className="h-8 w-8 text-primary" />
-            <div className="text-[15px] font-semibold tracking-tight">Drop your CSV to analyze</div>
+            <div className="text-[15px] font-semibold tracking-tight">Drop to analyze</div>
             <div className="text-[12px] text-muted-foreground">
-              Auto-detects the feedback column · Stays in this session
+              Feedback column auto-detected · Stays in this session
             </div>
           </div>
         </div>
@@ -434,8 +434,8 @@ function UploadScreen({
           into <span className="text-primary">confident</span> product decisions.
         </h1>
         <p className="mt-5 max-w-xl text-balance text-[19px] leading-relaxed text-muted-foreground">
-          Prism reads scattered customer conversations, surfaces the opportunities inside, and
-          hands you the evidence to prioritize with conviction.
+          Upload customer conversations. Prism groups similar problems into opportunities you can
+          defend — with the evidence attached.
         </p>
 
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
@@ -477,7 +477,7 @@ function UploadScreen({
           </label>
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          Auto-detects the feedback column · First 200 rows · ~15s analysis
+          Feedback column auto-detected · Up to 200 rows · About 15 seconds
         </p>
       </section>
 
@@ -543,9 +543,9 @@ function UploadScreen({
 function WorkspacePreview() {
   const { ref, inView } = useInView<HTMLDivElement>(0.15);
   const rows = [
-    { title: "Enterprise identity management", demand: 92, impact: "critical" as const, priority: 87 },
-    { title: "Admin permission management", demand: 74, impact: "high" as const, priority: 62 },
-    { title: "Historical decision search", demand: 51, impact: "medium" as const, priority: 38 },
+    { title: "Enterprise security & user management", demand: 92, impact: "critical" as const, priority: 87 },
+    { title: "Native integrations with existing tools", demand: 74, impact: "high" as const, priority: 62 },
+    { title: "Faster onboarding for new teams", demand: 51, impact: "medium" as const, priority: 38 },
   ];
   return (
     <div
@@ -612,28 +612,28 @@ const CLUSTER_DEMO: {
   customers: { id: number; quote: string }[];
 }[] = [
   {
-    name: "Enterprise Identity Management",
+    name: "Enterprise security & user management",
     customers: [
-      { id: 1, quote: "Need enterprise SSO" },
-      { id: 7, quote: "SAML with our IdP" },
+      { id: 1, quote: "Single sign-on with our identity provider" },
+      { id: 7, quote: "Federated login for pilot" },
       { id: 15, quote: "Automated user provisioning" },
-      { id: 31, quote: "Auto-deprovision leavers" },
+      { id: 31, quote: "Auto-remove access when people leave" },
     ],
   },
   {
-    name: "Admin Permission Management",
+    name: "Native integrations with existing tools",
     customers: [
-      { id: 4, quote: "Group-based roles" },
-      { id: 12, quote: "Granular permissions" },
-      { id: 22, quote: "Custom role definitions" },
+      { id: 4, quote: "Clean integration points, not another UI" },
+      { id: 12, quote: "Webhooks for our internal tooling" },
+      { id: 22, quote: "Two-way sync with our project tracker" },
     ],
   },
   {
-    name: "Historical Decision Search",
+    name: "Faster onboarding for new teams",
     customers: [
-      { id: 6, quote: "Can't find past decisions" },
-      { id: 18, quote: "Search misses attachments" },
-      { id: 27, quote: "Need filters and fuzzy match" },
+      { id: 6, quote: "New hires lose a week finding things" },
+      { id: 18, quote: "Empty-state is confusing" },
+      { id: 27, quote: "Templates for common team setups" },
     ],
   },
 ];
@@ -676,14 +676,14 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
   return (
     <div className="mx-auto max-w-4xl px-6 py-14">
       <p className="text-[11px] font-semibold uppercase tracking-widest text-primary">
-        Watch AI think
+        Reading customer conversations
       </p>
       <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">
-        <span className="text-shimmer">What patterns is AI discovering?</span>
+        <span className="text-shimmer">Grouping problems into opportunities</span>
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Reading {feedback.length} customer conversations. Individual voices arrive, cluster into
-        patterns, and resolve into opportunities. You'll make the call from there.
+        {feedback.length} conversations in. Prism surfaces individual voices, groups the recurring
+        ones, and names the pattern underneath. You take it from there.
       </p>
 
       <AIReasoningPipeline stage={pipelineStage} className="mt-8" />
@@ -752,7 +752,7 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
                 <div className="mt-4 flex items-center gap-2 text-sm italic text-muted-foreground">
                   <Sparkles className="h-4 w-4 animate-pulse text-primary" />
                   <span className="text-shimmer font-medium">
-                    These appear to describe…
+                    Naming the pattern…
                   </span>
                 </div>
               )}
@@ -1485,8 +1485,8 @@ function OpportunitiesScreen({
             What opportunities are emerging?
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-            {result.opportunities.length} opportunities from {result.feedback.length} conversations.
-            Expand a row to see the evidence and add your PM inputs.
+            {result.opportunities.length} opportunities emerged from {result.feedback.length}{" "}
+            conversations. Open a row to read the evidence and score your side of the call.
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={onReset}>
@@ -1618,13 +1618,13 @@ function OpportunitiesScreen({
       </div>
 
       <p className="mt-6 max-w-2xl text-[12px] text-muted-foreground">
-        Priority = AI-inferred customer signal + your strategic importance − your engineering effort.
+        Priority = AI customer signal + your strategic weight − your engineering cost.
       </p>
 
       <div className="sticky bottom-6 mt-10 flex justify-center">
         <div className={cn("flex items-center gap-3 rounded-full border border-border bg-card/95 px-4 py-2 shadow-elevate-2 backdrop-blur transition-opacity", selected.size === 0 && "opacity-60")}>
           <span className="text-xs text-muted-foreground">
-            {selected.size === 0 ? "Select opportunities to compare" : `${selected.size} selected`}
+            {selected.size === 0 ? "Select two or more to compare" : `${selected.size} selected`}
           </span>
           <Button size="sm" disabled={selected.size < 2} onClick={() => onCompare([...selected].sort((a, b) => a - b))}>
             Compare
@@ -2030,16 +2030,16 @@ function CompareScreen({
         Back to opportunities
       </Button>
       <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        Comparison workspace
+        Side by side
       </p>
       <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-[44px]">
         Comparing {indices.length} opportunities
       </h1>
       <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
-        Two clearly-separated inputs feed the recommendation:{" "}
-        <span className="text-primary">what AI inferred from customer feedback</span> and{" "}
-        <span className="text-foreground/80">what you contribute as PM</span>. The
-        priority recommendation lives underneath both — never as just another column.
+        Two inputs, kept separate:{" "}
+        <span className="text-primary">what AI read from customer conversations</span> and{" "}
+        <span className="text-foreground/80">what you add as PM</span>. Priority is the outcome
+        underneath — never a column on its own.
       </p>
 
       <div className="mt-8 overflow-x-auto">
@@ -2075,7 +2075,7 @@ function CompareScreen({
           })}
 
           {/* ============ AI SIGNALS GROUP ============ */}
-          <CompareGroupHeader tone="ai" label="AI-inferred from customer feedback" columns={indices.length} />
+          <CompareGroupHeader tone="ai" label="Read from customer conversations" columns={indices.length} />
 
           <CompareRowLabel tone="ai">
             <Users className="h-3.5 w-3.5" /> Customer demand
@@ -2141,7 +2141,7 @@ function CompareScreen({
           })}
 
           {/* ============ PM INPUTS GROUP ============ */}
-          <CompareGroupHeader tone="pm" label="Your PM inputs — why leadership should care" columns={indices.length} />
+          <CompareGroupHeader tone="pm" label="Your side of the call" columns={indices.length} />
 
           <CompareRowLabel tone="pm">
             <Target className="h-3.5 w-3.5" /> Engineering effort
@@ -2200,10 +2200,10 @@ function CompareScreen({
           </div>
           <div>
             <div className="text-xs font-semibold uppercase tracking-widest text-primary">
-              Priority recommendation
+              Priority
             </div>
             <div className="text-xs text-muted-foreground">
-              Emerges from both groups above — evidence is what carries this forward, not the
+              Emerges from both sides above. What carries this forward is the evidence, not the
               number.
             </div>
           </div>
@@ -2277,11 +2277,11 @@ function CompareScreen({
       <div className="mt-8 rounded-lg border border-border/60 bg-muted/20 p-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <AIChip>AI</AIChip>
-          <span>= inferred from customer feedback (with rationale)</span>
+          <span>= read from customer conversations, with rationale</span>
         </div>
         <div className="mt-2 flex items-center gap-2">
           <PMChip>You</PMChip>
-          <span>= entered by you; leadership signal that AI cannot infer</span>
+          <span>= added by you — the signal AI can't infer</span>
         </div>
       </div>
     </div>
@@ -2402,7 +2402,7 @@ function DetailScreen({
 
       {/* Memo header */}
       <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        Priority brief
+        Priority memo
       </p>
       <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-[44px]">{op.title}</h1>
       <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
@@ -2553,8 +2553,8 @@ function DetailScreen({
       <MemoSection
         source="mixed"
         eyebrow="Section 4 · Priority"
-        title="What's driving this recommendation"
-        lede="Priority emerges from AI-observed customer signal combined with your effort and strategic scoring — not a single opaque number."
+        title="What's driving this"
+        lede="Priority is the sum of AI-observed customer signal and your own effort and strategic weight — not one opaque number."
       >
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-border bg-muted/40 p-4">
@@ -2646,7 +2646,7 @@ function DetailScreen({
         source="pm"
         eyebrow="Section 6 · PM decision"
         title="Your call"
-        lede="AI synthesized the evidence above. This next step is yours — pick one. You can revisit and change it anytime."
+        lede="AI put the evidence in front of you. The next step is yours — pick one. You can change it later."
       >
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {(Object.keys(DECISION_META) as Decision[]).map((d) => {
@@ -2673,18 +2673,18 @@ function DetailScreen({
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
             <div>
               <p className="text-xs text-muted-foreground">
-                Current decision:{" "}
+                Current call:{" "}
                 <span className="font-semibold text-foreground">
                   {DECISION_META[decision].label}
                 </span>
               </p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">
-                Ready for the roadmap meeting? Export a one-page summary.
+                Take it into the roadmap review — export the one-pager.
               </p>
             </div>
             <Button size="sm" onClick={() => setSummaryOpen(true)}>
               <FileText className="mr-2 h-4 w-4" />
-              Generate one-page summary
+              Export one-pager
             </Button>
           </div>
         )}
