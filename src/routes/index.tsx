@@ -2277,11 +2277,11 @@ function CompareScreen({
       <div className="mt-8 rounded-lg border border-border/60 bg-muted/20 p-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <AIChip>AI</AIChip>
-          <span>= inferred from customer feedback (with rationale)</span>
+          <span>= read from customer conversations, with rationale</span>
         </div>
         <div className="mt-2 flex items-center gap-2">
           <PMChip>You</PMChip>
-          <span>= entered by you; leadership signal that AI cannot infer</span>
+          <span>= added by you — the signal AI can't infer</span>
         </div>
       </div>
     </div>
