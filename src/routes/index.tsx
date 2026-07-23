@@ -21,6 +21,8 @@ import {
   Eye,
   Pause,
   Play,
+  FileText,
+
 
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
