@@ -2553,8 +2553,8 @@ function DetailScreen({
       <MemoSection
         source="mixed"
         eyebrow="Section 4 · Priority"
-        title="What's driving this recommendation"
-        lede="Priority emerges from AI-observed customer signal combined with your effort and strategic scoring — not a single opaque number."
+        title="What's driving this"
+        lede="Priority is the sum of AI-observed customer signal and your own effort and strategic weight — not one opaque number."
       >
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-border bg-muted/40 p-4">
