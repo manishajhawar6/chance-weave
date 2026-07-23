@@ -434,8 +434,8 @@ function UploadScreen({
           into <span className="text-primary">confident</span> product decisions.
         </h1>
         <p className="mt-5 max-w-xl text-balance text-[19px] leading-relaxed text-muted-foreground">
-          Prism reads scattered customer conversations, surfaces the opportunities inside, and
-          hands you the evidence to prioritize with conviction.
+          Upload customer conversations. Prism groups similar problems into opportunities you can
+          defend — with the evidence attached.
         </p>
 
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
@@ -477,7 +477,7 @@ function UploadScreen({
           </label>
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          Auto-detects the feedback column · First 200 rows · ~15s analysis
+          Feedback column auto-detected · Up to 200 rows · About 15 seconds
         </p>
       </section>
 
