@@ -145,7 +145,7 @@ function Home() {
           rows = arrays.flat().filter((v) => typeof v === "string" && v.trim().length > 0);
         }
         if (rows.length === 0) {
-          toast.error("No feedback rows found in that CSV.");
+          toast.error("No feedback rows in that CSV.");
           return;
         }
         if (rows.length > 200) rows = rows.slice(0, 200);
