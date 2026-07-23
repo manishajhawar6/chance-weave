@@ -428,12 +428,12 @@ function UploadScreen({
 
       {/* 1 — Hero */}
       <section className="flex min-h-[calc(68vh-57px)] flex-col items-center justify-center pt-8 pb-4 text-center">
-        <h1 className="text-balance text-[52px] font-semibold leading-[1.02] tracking-tight sm:text-7xl">
+        <h1 className="text-balance text-[57px] font-semibold leading-[1.02] tracking-tight sm:text-[78px]">
           Turn customer conversations
           <br className="hidden sm:block" />{" "}
           into <span className="text-primary">confident</span> product decisions.
         </h1>
-        <p className="mt-5 max-w-xl text-balance text-lg leading-relaxed text-muted-foreground">
+        <p className="mt-5 max-w-xl text-balance text-[19px] leading-relaxed text-muted-foreground">
           Prism reads scattered customer conversations, surfaces the opportunities inside, and
           hands you the evidence to prioritize with conviction.
         </p>
