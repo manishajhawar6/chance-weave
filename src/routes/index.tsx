@@ -1842,13 +1842,13 @@ function CompareScreen({
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to opportunities
       </Button>
-      <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
         Comparison workspace
       </p>
-      <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+      <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-[44px]">
         Comparing {indices.length} opportunities
       </h1>
-      <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+      <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
         Two clearly-separated inputs feed the recommendation:{" "}
         <span className="text-primary">what AI inferred from customer feedback</span> and{" "}
         <span className="text-foreground/80">what you contribute as PM</span>. The
