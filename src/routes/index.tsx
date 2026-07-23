@@ -2582,8 +2582,10 @@ function DetailScreen({
                   max={5}
                   placeholder="Alignment with company strategy"
                 />
-              </div>
             </div>
+            <p className="mt-3 text-[11px] italic text-muted-foreground">
+              Change either input and the ladder on the right rebuilds.
+            </p>
           </div>
 
           <PriorityLadder
