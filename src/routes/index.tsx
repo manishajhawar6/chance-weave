@@ -297,6 +297,12 @@ function PrismMark({ className }: { className?: string }) {
 function FlowStepper({ screen }: { screen: Screen }) {
   const activeIndex = STEP_ORDER.findIndex((s) => s.kinds.includes(screen.kind));
   const active = STEP_ORDER[activeIndex];
+  const isHome = screen.kind === "upload";
+  const homeLinks = [
+    { href: "#how-it-works", label: "How it works" },
+    { href: "#workspace", label: "Workspace" },
+    { href: "#philosophy", label: "Philosophy" },
+  ];
   return (
     <div className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-6 py-3.5 text-xs">
@@ -309,32 +315,46 @@ function FlowStepper({ screen }: { screen: Screen }) {
             <span className="text-foreground/80">You decide.</span>
           </span>
         </div>
-        <div className="ml-auto hidden items-center gap-1.5 md:flex">
-          {STEP_ORDER.map((s, i) => (
-            <div key={s.label} className="flex items-center gap-1.5">
-              <div
-                className={cn(
-                  "flex h-1.5 w-1.5 rounded-full transition-colors",
-                  i < activeIndex && "bg-primary/60",
-                  i === activeIndex && "bg-primary shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_20%,transparent)]",
-                  i > activeIndex && "bg-muted-foreground/25",
-                )}
-              />
-              <span
-                className={cn(
-                  "text-[11px] font-medium tracking-wide transition-colors",
-                  i === activeIndex ? "text-foreground" : "text-muted-foreground/70",
-                )}
+        {isHome ? (
+          <nav className="ml-auto hidden items-center gap-6 md:flex">
+            {homeLinks.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
-                {s.label}
-              </span>
-              {i < STEP_ORDER.length - 1 && (
-                <div className="mx-1 h-px w-5 bg-border/80" />
-              )}
-            </div>
-          ))}
-        </div>
-        {active && (
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        ) : (
+          <div className="ml-auto hidden items-center gap-1.5 md:flex">
+            {STEP_ORDER.map((s, i) => (
+              <div key={s.label} className="flex items-center gap-1.5">
+                <div
+                  className={cn(
+                    "flex h-1.5 w-1.5 rounded-full transition-colors",
+                    i < activeIndex && "bg-primary/60",
+                    i === activeIndex && "bg-primary shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_20%,transparent)]",
+                    i > activeIndex && "bg-muted-foreground/25",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "text-[11px] font-medium tracking-wide transition-colors",
+                    i === activeIndex ? "text-foreground" : "text-muted-foreground/70",
+                  )}
+                >
+                  {s.label}
+                </span>
+                {i < STEP_ORDER.length - 1 && (
+                  <div className="mx-1 h-px w-5 bg-border/80" />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+        {!isHome && active && (
           <div className="w-full text-muted-foreground md:hidden">
             <span className="font-medium text-foreground">{active.label}:</span>{" "}
             {active.question}
@@ -344,6 +364,7 @@ function FlowStepper({ screen }: { screen: Screen }) {
     </div>
   );
 }
+
 
 // ---------- Screen 1: Upload ----------
 
