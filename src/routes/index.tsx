@@ -306,7 +306,7 @@ function FlowStepper({ screen }: { screen: Screen }) {
           <span className="hidden text-muted-foreground/70 sm:inline">·</span>
           <span className="hidden text-[11px] font-medium tracking-wide text-muted-foreground sm:inline">
             <span className="text-primary/80">AI synthesizes.</span>{" "}
-            <span className="text-amber-600 dark:text-amber-400">You decide.</span>
+            <span className="text-foreground/80">You decide.</span>
           </span>
         </div>
         <div className="ml-auto hidden items-center gap-1.5 md:flex">
@@ -726,7 +726,7 @@ function AIReasoningPipeline({
         </span>
         <span className="hidden text-[10px] text-muted-foreground sm:inline">
           <span className="text-primary">AI synthesizes</span> ·{" "}
-          <span className="text-amber-600 dark:text-amber-400">you decide</span>
+          <span className="text-foreground/80">you decide</span>
         </span>
       </div>
       <div className="grid grid-cols-4 items-stretch gap-1.5">
@@ -741,7 +741,7 @@ function AIReasoningPipeline({
                 className={cn(
                   "flex h-full flex-col items-start gap-1 rounded-xl border p-2.5 transition-all duration-500",
                   isActive && !isPm && "border-primary/50 bg-primary/[0.06] shadow-elevate-2 -translate-y-0.5",
-                  isActive && isPm && "border-amber-500/50 bg-amber-500/[0.06]",
+                  isActive && isPm && "border-border bg-muted/40",
                   isPast && "border-primary/25 bg-primary/[0.03]",
                   !isActive && !isPast && "border-border/60 bg-transparent opacity-70",
                 )}
@@ -752,8 +752,8 @@ function AIReasoningPipeline({
                       "grid h-6 w-6 place-items-center rounded-md transition-colors",
                       isPm
                         ? isActive
-                          ? "bg-amber-500 text-white"
-                          : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                          ? "bg-foreground text-white"
+                          : "bg-muted/40 text-foreground/80"
                         : isActive || isPast
                           ? "bg-primary text-primary-foreground"
                           : "bg-primary/10 text-primary/60",
@@ -811,7 +811,7 @@ function PMChip({ children, className }: { children: React.ReactNode; className?
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/5 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400",
+        "inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/80",
         className,
       )}
     >
@@ -1147,7 +1147,7 @@ function NumInput({
         if (Number.isNaN(n)) return;
         onChange(Math.max(min, Math.min(max, n)));
       }}
-      className="h-8 border-amber-500/30 bg-amber-500/5 text-sm"
+      className="h-8 border-border bg-muted/40 text-sm"
     />
   );
 }
@@ -1192,7 +1192,7 @@ function CompareScreen({
       <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
         Two clearly-separated inputs feed the recommendation:{" "}
         <span className="text-primary">what AI inferred from customer feedback</span> and{" "}
-        <span className="text-amber-600 dark:text-amber-400">what you contribute as PM</span>. The
+        <span className="text-foreground/80">what you contribute as PM</span>. The
         priority recommendation lives underneath both — never as just another column.
       </p>
 
@@ -1339,7 +1339,7 @@ function CompareScreen({
                 value={pm[i]?.revenue_opportunity ?? ""}
                 placeholder="e.g. $40k ARR at risk"
                 onChange={(e) => updatePM(i, { revenue_opportunity: e.target.value })}
-                className="h-8 border-amber-500/30 bg-amber-500/5 text-sm"
+                className="h-8 border-border bg-muted/40 text-sm"
               />
             </CompareCell>
           ))}
@@ -1410,14 +1410,14 @@ function CompareScreen({
                     className={cn(
                       "rounded border px-1.5 py-0.5",
                       bd.strategic > 0
-                        ? "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400"
+                        ? "border-border bg-muted/40 text-foreground/80"
                         : "border-dashed border-border text-muted-foreground",
                     )}
                   >
                     + You {bd.strategic}
                   </span>
                   {bd.effortPenalty > 0 && (
-                    <span className="rounded border border-amber-500/30 bg-amber-500/5 px-1.5 py-0.5 text-amber-600 dark:text-amber-400">
+                    <span className="rounded border border-border bg-muted/40 px-1.5 py-0.5 text-foreground/80">
                       − Effort {bd.effortPenalty}
                     </span>
                   )}
@@ -1454,7 +1454,7 @@ function CompareRowLabel({
       className={cn(
         "flex items-center gap-2 rounded-md px-3 py-3 text-xs font-semibold uppercase tracking-wider",
         tone === "ai" && "bg-primary/5 text-primary",
-        tone === "pm" && "bg-amber-500/5 text-amber-600 dark:text-amber-400",
+        tone === "pm" && "bg-muted/40 text-foreground/80",
         !tone && "bg-muted/40 text-foreground",
       )}
     >
@@ -1475,7 +1475,7 @@ function CompareCell({
       className={cn(
         "rounded-lg border bg-card p-3",
         tone === "ai" && "border-primary/20",
-        tone === "pm" && "border-amber-500/30",
+        tone === "pm" && "border-border",
         !tone && "border-border/60",
       )}
     >
@@ -1500,7 +1500,7 @@ function CompareGroupHeader({
         "mt-2 flex items-center gap-2 rounded-md border px-3 py-2 text-[11px] font-semibold uppercase tracking-widest",
         tone === "ai"
           ? "border-primary/30 bg-primary/10 text-primary"
-          : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+          : "border-border bg-muted/40 text-foreground/80",
       )}
     >
       {tone === "ai" ? <Bot className="h-3.5 w-3.5" /> : <UserIcon className="h-3.5 w-3.5" />}
@@ -1640,7 +1640,7 @@ function DetailScreen({
             value={pm?.revenue_opportunity ?? ""}
             onChange={(e) => patch({ revenue_opportunity: e.target.value })}
             placeholder="e.g. $40k ARR at risk across 3 enterprise renewals"
-            className="mt-1 h-9 border-amber-500/30 bg-amber-500/5 text-sm"
+            className="mt-1 h-9 border-border bg-muted/40 text-sm"
           />
           <p className="mt-1 text-[11px] text-muted-foreground">
             <PMChip>You</PMChip> <span className="ml-1">The AI can count mentions; it can't count dollars.</span>
@@ -1711,7 +1711,7 @@ function DetailScreen({
         lede="Priority emerges from AI-observed customer signal combined with your effort and strategic scoring — not a single opaque number."
       >
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+          <div className="rounded-lg border border-border bg-muted/40 p-4">
             <div className="mb-3 flex items-center gap-2">
               <PMChip>You</PMChip>
               <span className="text-xs font-semibold uppercase tracking-wider">Your inputs</span>
@@ -1789,7 +1789,7 @@ function DetailScreen({
           )}
           {missingPmInputs.length > 0 && (
             <li className="flex items-start gap-2">
-              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground" />
               Add {missingPmInputs.join(" and ")} above so the priority reflects your context.
             </li>
           )}
@@ -1924,7 +1924,7 @@ function SignalCard({
     <Card
       className={cn(
         "border p-5",
-        source === "ai" ? "border-primary/20" : "border-amber-500/30",
+        source === "ai" ? "border-primary/20" : "border-border",
       )}
     >
       <div className="flex items-center justify-between">
