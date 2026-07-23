@@ -2646,7 +2646,7 @@ function DetailScreen({
         source="pm"
         eyebrow="Section 6 · PM decision"
         title="Your call"
-        lede="AI synthesized the evidence above. This next step is yours — pick one. You can revisit and change it anytime."
+        lede="AI put the evidence in front of you. The next step is yours — pick one. You can change it later."
       >
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {(Object.keys(DECISION_META) as Decision[]).map((d) => {
@@ -2673,18 +2673,18 @@ function DetailScreen({
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
             <div>
               <p className="text-xs text-muted-foreground">
-                Current decision:{" "}
+                Current call:{" "}
                 <span className="font-semibold text-foreground">
                   {DECISION_META[decision].label}
                 </span>
               </p>
               <p className="mt-0.5 text-[11px] text-muted-foreground">
-                Ready for the roadmap meeting? Export a one-page summary.
+                Take it into the roadmap review — export the one-pager.
               </p>
             </div>
             <Button size="sm" onClick={() => setSummaryOpen(true)}>
               <FileText className="mr-2 h-4 w-4" />
-              Generate one-page summary
+              Export one-pager
             </Button>
           </div>
         )}
