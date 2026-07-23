@@ -500,8 +500,8 @@ function WorkspacePreview() {
     { title: "Search improvements", demand: 51, impact: "medium" as const, priority: 38 },
   ];
   return (
-    <div className="text-[13px]">
-      <div className="grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 border-b border-border/50 bg-muted/20 px-6 py-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+    <div className="text-[15px]">
+      <div className="grid grid-cols-[minmax(0,2fr)_170px_130px_110px] items-center gap-5 border-b border-border/40 bg-muted/25 px-8 py-4 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
         <div>Opportunity</div>
         <div>Demand</div>
         <div>Impact</div>
@@ -511,23 +511,26 @@ function WorkspacePreview() {
         <div
           key={r.title}
           className={cn(
-            "grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 px-6 py-5",
+            "grid grid-cols-[minmax(0,2fr)_170px_130px_110px] items-center gap-5 px-8 py-6 transition-colors",
             i < rows.length - 1 && "border-b border-border/30",
+            "hover:bg-muted/20",
           )}
         >
-          <div className="font-medium">{r.title}</div>
+          <div className="text-[15px] font-medium tracking-tight">{r.title}</div>
           <MeterCell value={r.demand} />
           <div>
             <span
               className={cn(
-                "rounded-full px-2 py-0.5 text-[11px] font-medium capitalize",
+                "rounded-full px-2.5 py-1 text-[11px] font-medium capitalize",
                 IMPACT_TONE[r.impact],
               )}
             >
               {r.impact}
             </span>
           </div>
-          <div className="text-right text-lg font-semibold tabular-nums">{r.priority}</div>
+          <div className="text-right text-[22px] font-semibold tabular-nums leading-none">
+            {r.priority}
+          </div>
         </div>
       ))}
     </div>
