@@ -9,7 +9,7 @@ import {
   Bot,
   User as UserIcon,
   Check,
-  Loader2,
+  
   Quote,
   Layers,
   TrendingUp,
