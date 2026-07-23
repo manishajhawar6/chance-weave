@@ -2047,10 +2047,10 @@ function CompareScreen({
         Comparing {indices.length} opportunities
       </h1>
       <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
-        Two inputs, kept separate:{" "}
-        <span className="text-primary">what AI read from customer conversations</span> and{" "}
-        <span className="text-foreground/80">what you add as PM</span>. Priority is the outcome
-        underneath — never a column on its own.
+        Two sides, kept separate:{" "}
+        <span className="text-primary">what AI read from the conversations</span> and{" "}
+        <span className="text-foreground/80">what you add as PM</span>. Recommended priority
+        emerges from both — a recommendation, not a verdict.
       </p>
 
       <div className="mt-8 overflow-x-auto">
