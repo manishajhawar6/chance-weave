@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Papa from "papaparse";
 import {
   ArrowLeft,
@@ -379,7 +379,7 @@ function UploadScreen({
   return (
     <div className="mx-auto max-w-5xl px-6 pb-8">
       {/* 1 — Hero */}
-      <section className="flex min-h-[calc(72vh-57px)] flex-col items-center justify-center py-8 text-center">
+      <section className="flex min-h-[calc(68vh-57px)] flex-col items-center justify-center pt-8 pb-4 text-center">
         <h1 className="text-balance text-[52px] font-semibold leading-[1.02] tracking-tight sm:text-7xl">
           Turn customer conversations
           <br className="hidden sm:block" />{" "}
@@ -434,7 +434,7 @@ function UploadScreen({
       </section>
 
       {/* 2 — AI reasoning animation */}
-      <section id="how-it-works" className="scroll-mt-20 border-t border-border/50 py-10">
+      <section id="how-it-works" className="scroll-mt-20 pt-6 pb-14">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             How Prism thinks
@@ -447,8 +447,8 @@ function UploadScreen({
             patterns, and the rationale behind the recommendation.
           </p>
         </div>
-        <div className="mx-auto mt-6 max-w-3xl">
-          <AIReasoningPipeline stage="opportunity" />
+        <div className="mx-auto mt-10 max-w-4xl">
+          <SignaturePipeline />
         </div>
       </section>
 
@@ -713,7 +713,266 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
   );
 }
 
+// ---------- Signature Pipeline (homepage hero-adjacent) ----------
+// Premium, editorial rendering of Evidence → Patterns → Opportunity → Human Decision.
+// The Opportunity card is the "aha" — visually the loudest. Cards fade+lift into view
+// on scroll with a gentle stagger, connected by a continuous line so the four steps
+// read as one flow, not four tiles.
+
+function useInView<T extends HTMLElement>(threshold = 0.2) {
+  const ref = useRef<T | null>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          obs.disconnect();
+        }
+      },
+      { threshold },
+    );
+    obs.observe(node);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return { ref, inView };
+}
+
+function SignaturePipeline() {
+  const { ref, inView } = useInView<HTMLDivElement>(0.15);
+  const steps = [
+    {
+      key: "evidence",
+      label: "Evidence",
+      sub: "Customer voices, verbatim",
+      caption: "Raw conversations, tickets, and interviews land here as source material.",
+      icon: Quote,
+      owner: "ai" as const,
+    },
+    {
+      key: "patterns",
+      label: "Patterns",
+      sub: "Recurring signals",
+      caption: "AI groups related voices into themes and names each cluster.",
+      icon: Layers,
+      owner: "ai" as const,
+    },
+    {
+      key: "opportunity",
+      label: "Opportunity",
+      sub: "With rationale",
+      caption:
+        "The aha moment — a defensible product opportunity with evidence, demand, and confidence.",
+      icon: Sparkles,
+      owner: "ai" as const,
+      hero: true,
+    },
+    {
+      key: "decision",
+      label: "Human decision",
+      sub: "PM owns the call",
+      caption: "You weigh effort, strategy, and revenue — Prism steps back.",
+      icon: UserIcon,
+      owner: "pm" as const,
+    },
+  ];
+
+  return (
+    <div ref={ref} className="relative">
+      {/* Desktop layout */}
+      <div className="relative hidden md:block">
+        {/* Continuous connector line behind cards */}
+        <div
+          aria-hidden
+          className={cn(
+            "absolute left-[6%] right-[6%] top-[46px] h-px origin-left transition-transform duration-1000 ease-out",
+            "bg-gradient-to-r from-transparent via-primary/40 to-transparent",
+            inView ? "scale-x-100" : "scale-x-0",
+          )}
+        />
+        <div className="relative grid grid-cols-4 gap-3">
+          {steps.map((s, i) => (
+            <SignatureCard
+              key={s.key}
+              step={s}
+              index={i}
+              isLast={i === steps.length - 1}
+              inView={inView}
+              orientation="horizontal"
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Mobile layout — vertical with a left rail */}
+      <div className="relative md:hidden">
+        <div
+          aria-hidden
+          className={cn(
+            "absolute left-[22px] top-6 bottom-6 w-px origin-top transition-transform duration-1000 ease-out",
+            "bg-gradient-to-b from-transparent via-primary/40 to-transparent",
+            inView ? "scale-y-100" : "scale-y-0",
+          )}
+        />
+        <div className="relative flex flex-col gap-3">
+          {steps.map((s, i) => (
+            <SignatureCard
+              key={s.key}
+              step={s}
+              index={i}
+              isLast={i === steps.length - 1}
+              inView={inView}
+              orientation="vertical"
+            />
+          ))}
+        </div>
+      </div>
+
+      <p className="mt-6 text-center text-[11px] font-medium uppercase tracking-widest text-muted-foreground">
+        <span className="text-primary">AI synthesizes</span>{" "}
+        <span className="text-muted-foreground/60">·</span>{" "}
+        <span className="text-foreground/80">You decide</span>
+      </p>
+    </div>
+  );
+}
+
+function SignatureCard({
+  step,
+  index,
+  isLast,
+  inView,
+  orientation,
+}: {
+  step: {
+    label: string;
+    sub: string;
+    caption: string;
+    icon: typeof Quote;
+    owner: "ai" | "pm";
+    hero?: boolean;
+  };
+  index: number;
+  isLast: boolean;
+  inView: boolean;
+  orientation: "horizontal" | "vertical";
+}) {
+  const Icon = step.icon;
+  const isPm = step.owner === "pm";
+  const isHero = !!step.hero;
+  const delay = `${index * 110}ms`;
+
+  return (
+    <div
+      className={cn(
+        "relative transition-all duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] will-change-transform",
+        inView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3",
+      )}
+      style={{ transitionDelay: inView ? delay : "0ms" }}
+    >
+      <div
+        className={cn(
+          "group relative flex h-full flex-col gap-3 rounded-2xl border bg-surface p-5 transition-all duration-300 ease-out",
+          "hover:-translate-y-0.5",
+          isHero
+            ? "border-primary/40 bg-[color-mix(in_oklab,var(--primary)_5%,var(--surface))] shadow-elevate-3 ring-1 ring-primary/10 hover:shadow-glow"
+            : "border-border/70 shadow-elevate-1 hover:border-foreground/20 hover:shadow-elevate-2",
+          orientation === "vertical" && "pl-10",
+        )}
+      >
+        {/* Step number pill on the rail (mobile only visual anchor) */}
+        {orientation === "vertical" && (
+          <span
+            className={cn(
+              "absolute -left-[3px] top-5 grid h-6 w-6 place-items-center rounded-full border bg-background text-[10px] font-semibold tabular-nums",
+              isHero ? "border-primary/50 text-primary" : "border-border text-muted-foreground",
+            )}
+          >
+            {index + 1}
+          </span>
+        )}
+
+        <div className="flex items-center justify-between">
+          <div
+            className={cn(
+              "grid h-9 w-9 place-items-center rounded-lg transition-colors",
+              isPm
+                ? "bg-foreground text-background"
+                : isHero
+                  ? "bg-primary text-primary-foreground shadow-[0_6px_20px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
+                  : "bg-primary/10 text-primary",
+            )}
+          >
+            <Icon className="h-[18px] w-[18px]" />
+          </div>
+          <span
+            className={cn(
+              "rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+              isPm
+                ? "border-border bg-muted/50 text-foreground/70"
+                : "border-primary/20 bg-primary/[0.06] text-primary",
+            )}
+          >
+            {isPm ? "You" : "AI"}
+          </span>
+        </div>
+
+        <div>
+          <div
+            className={cn(
+              "font-semibold leading-tight tracking-tight",
+              isHero ? "text-[19px]" : "text-[17px]",
+            )}
+          >
+            {step.label}
+          </div>
+          <div className="mt-0.5 text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
+            {step.sub}
+          </div>
+        </div>
+
+        <p
+          className={cn(
+            "text-[13px] leading-relaxed text-muted-foreground",
+            isHero && "text-foreground/70",
+          )}
+        >
+          {step.caption}
+        </p>
+      </div>
+
+      {/* Horizontal connector chevron between cards */}
+      {orientation === "horizontal" && !isLast && (
+        <div
+          aria-hidden
+          className={cn(
+            "pointer-events-none absolute top-[46px] -right-[10px] z-10 grid h-5 w-5 -translate-y-1/2 place-items-center rounded-full border bg-background text-primary transition-all duration-500",
+            inView ? "opacity-100 scale-100" : "opacity-0 scale-75",
+            "border-primary/25",
+          )}
+          style={{ transitionDelay: inView ? `${index * 110 + 250}ms` : "0ms" }}
+        >
+          <svg width="9" height="9" viewBox="0 0 10 10">
+            <path
+              d="M2 5 H8 M5.5 2.5 L8 5 L5.5 7.5"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </svg>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------- Explainable AI Reasoning Pipeline ----------
+
+
 
 function AIReasoningPipeline({
   stage,
