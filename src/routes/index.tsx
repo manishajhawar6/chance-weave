@@ -612,28 +612,28 @@ const CLUSTER_DEMO: {
   customers: { id: number; quote: string }[];
 }[] = [
   {
-    name: "Enterprise Readiness",
+    name: "Enterprise Identity Management",
     customers: [
-      { id: 1, quote: "Need SSO" },
-      { id: 7, quote: "Need Okta" },
-      { id: 15, quote: "Need SCIM" },
-      { id: 31, quote: "Need SOC 2" },
+      { id: 1, quote: "Need enterprise SSO" },
+      { id: 7, quote: "SAML with our IdP" },
+      { id: 15, quote: "Automated user provisioning" },
+      { id: 31, quote: "Auto-deprovision leavers" },
     ],
   },
   {
-    name: "Mobile Reliability",
+    name: "Admin Permission Management",
     customers: [
-      { id: 4, quote: "iOS keeps crashing" },
-      { id: 12, quote: "Android is way behind" },
-      { id: 22, quote: "Push notifications never arrive" },
+      { id: 4, quote: "Group-based roles" },
+      { id: 12, quote: "Granular permissions" },
+      { id: 22, quote: "Custom role definitions" },
     ],
   },
   {
-    name: "Search Improvements",
+    name: "Historical Decision Search",
     customers: [
-      { id: 6, quote: "Search misses PDFs" },
-      { id: 18, quote: "No fuzzy match for typos" },
-      { id: 27, quote: "Need better filters" },
+      { id: 6, quote: "Can't find past decisions" },
+      { id: 18, quote: "Search misses attachments" },
+      { id: 27, quote: "Need filters and fuzzy match" },
     ],
   },
 ];
