@@ -1294,58 +1294,22 @@ function OpportunitiesScreen({
 
               <div
                 className={cn(
-                  "grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out",
+                  "grid overflow-hidden transition-[grid-template-rows,opacity] duration-500 ease-out",
                   isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
                 )}
               >
                 <div className="min-h-0">
-                  <div className="grid gap-8 pb-8 pl-[calc(32px+1rem)] pr-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Evidence · {op.evidence_indices.length} quote{op.evidence_indices.length === 1 ? "" : "s"}
-                    </div>
-                    {quote && (
-                      <blockquote className="mt-3 border-l-2 border-primary/40 pl-4 text-[14px] italic leading-relaxed text-foreground/80">
-                        "{quote.slice(0, 220)}{quote.length > 220 ? "…" : ""}"
-                      </blockquote>
-                    )}
-                    <div className="mt-4 text-[12px] text-muted-foreground">
-                      Confidence · {Math.round(op.confidence)}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Your inputs
-                    </div>
-                    <div className="mt-3 space-y-3">
-                      <Stepper
-                        label="Engineering effort"
-                        hint="1 low · 10 high"
-                        value={pmi.engineering_effort}
-                        min={1}
-                        max={10}
-                        onChange={(v) => updatePM(i, { engineering_effort: v })}
-                      />
-                      <Stepper
-                        label="Strategic importance"
-                        hint="1–5"
-                        value={pmi.strategic_importance}
-                        min={1}
-                        max={5}
-                        onChange={(v) => updatePM(i, { strategic_importance: v })}
-                      />
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-1.5 text-[10px] text-muted-foreground">
-                      <span>AI {bd.ai}</span>
-                      <span>·</span>
-                      <span>+ Strategic {bd.strategic}</span>
-                      <span>·</span>
-                      <span>− Effort {bd.effortPenalty}</span>
-                      <span>·</span>
-                      <span className="font-semibold text-foreground">= {priority}</span>
-                    </div>
-                  </div>
-                  </div>
+                  <EditorialExpansion
+                    op={op}
+                    pmi={pmi}
+                    priority={priority}
+                    bd={bd}
+                    themes={result.themes}
+                    feedback={result.feedback}
+                    onPMChange={(patch) => updatePM(i, patch)}
+                    onOpen={() => onOpen(i)}
+                    suggested={suggestDecision(priority, op.confidence)}
+                  />
                 </div>
               </div>
             </div>
