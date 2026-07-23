@@ -661,7 +661,7 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
         })();
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12">
+    <div className="mx-auto max-w-4xl px-6 py-14">
       <p className="text-[11px] font-semibold uppercase tracking-widest text-primary">
         Watch AI think
       </p>
