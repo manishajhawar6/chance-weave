@@ -676,14 +676,14 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
   return (
     <div className="mx-auto max-w-4xl px-6 py-14">
       <p className="text-[11px] font-semibold uppercase tracking-widest text-primary">
-        Watch AI think
+        Reading customer conversations
       </p>
       <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">
-        <span className="text-shimmer">What patterns is AI discovering?</span>
+        <span className="text-shimmer">Grouping problems into opportunities</span>
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Reading {feedback.length} customer conversations. Individual voices arrive, cluster into
-        patterns, and resolve into opportunities. You'll make the call from there.
+        {feedback.length} conversations in. Prism surfaces individual voices, groups the recurring
+        ones, and names the pattern underneath. You take it from there.
       </p>
 
       <AIReasoningPipeline stage={pipelineStage} className="mt-8" />
