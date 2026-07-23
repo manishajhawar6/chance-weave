@@ -305,7 +305,8 @@ function FlowStepper({ screen }: { screen: Screen }) {
           <span className="text-[15px] font-semibold tracking-tight">Prism</span>
           <span className="hidden text-muted-foreground/70 sm:inline">·</span>
           <span className="hidden text-[11px] font-medium tracking-wide text-muted-foreground sm:inline">
-            Turn customer conversations into confident product decisions
+            <span className="text-primary/80">AI synthesizes.</span>{" "}
+            <span className="text-amber-600 dark:text-amber-400">You decide.</span>
           </span>
         </div>
         <div className="ml-auto hidden items-center gap-1.5 md:flex">
