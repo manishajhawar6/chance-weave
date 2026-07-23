@@ -2214,11 +2214,11 @@ function DetailScreen({
       </Button>
 
       {/* Memo header */}
-      <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
         Priority brief
       </p>
-      <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{op.title}</h1>
-      <p className="mt-3 max-w-3xl text-base leading-relaxed text-muted-foreground">
+      <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-[44px]">{op.title}</h1>
+      <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
         {op.problem}
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
