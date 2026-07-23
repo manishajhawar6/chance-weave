@@ -543,9 +543,9 @@ function UploadScreen({
 function WorkspacePreview() {
   const { ref, inView } = useInView<HTMLDivElement>(0.15);
   const rows = [
-    { title: "Enterprise security & user management", demand: 92, impact: "critical" as const, priority: 87 },
-    { title: "Native integrations with existing tools", demand: 74, impact: "high" as const, priority: 62 },
-    { title: "Faster onboarding for new teams", demand: 51, impact: "medium" as const, priority: 38 },
+    { title: "Enterprise security & governance gaps", demand: 92, impact: "critical" as const, priority: 87, evidence: 11 },
+    { title: "Fragmented workflows across existing tools", demand: 74, impact: "high" as const, priority: 62, evidence: 8 },
+    { title: "Slow team onboarding", demand: 51, impact: "medium" as const, priority: 38, evidence: 6 },
   ];
   return (
     <div
@@ -562,7 +562,7 @@ function WorkspacePreview() {
           <div>Opportunity</div>
           <div>Demand</div>
           <div>Impact</div>
-          <div className="text-right">Priority</div>
+          <div className="text-right">Recommended</div>
         </div>
         {rows.map((r, i) => (
           <div
