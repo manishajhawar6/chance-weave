@@ -1769,7 +1769,7 @@ function DetailScreen({
       {/* Section 4 — What still needs validation */}
       <MemoSection
         source="ai"
-        eyebrow="Section 4"
+        eyebrow="Section 5 · Open questions"
         title="What still needs validation"
         lede={op.confidence_rationale}
       >
