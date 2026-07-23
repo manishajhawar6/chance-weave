@@ -68,7 +68,12 @@ For each opportunity provide:
 Rules:
 - Every AI field is an inference the PM will scrutinize — be honest about confidence, don't inflate weak signals.
 - Do NOT estimate engineering effort, strategic importance, or revenue — those are the PM's job.
-- Keep language generic and portfolio-safe: no vendor names, no technology brand names, no industry-specific jargon.
+- Keep ALL language — titles, problem, rationales, themes — generic and portfolio-safe. This is strict and applies to every text field, not just titles.
+  - NEVER name specific vendors, products, or brands (e.g. Okta, Auth0, Azure AD, Google, Microsoft, Samsung, Apple, Slack, Jira, Salesforce, Zoom, Figma, Notion, GitHub, GitLab, Jenkins, AWS, Datadog, Zendesk, HubSpot, Stripe, Linear).
+  - NEVER name specific protocols, certifications, or acronyms (e.g. SSO, SAML, SCIM, OAuth, OIDC, LDAP, SOC 2, SOC2, HIPAA, GDPR, ISO 27001, PCI). Say "federated login", "automated user provisioning", "standard security certification", "regulatory compliance" instead.
+  - NEVER name specific device categories, operating systems, or form factors (e.g. Android, iOS, iPhone, foldable, tablet, desktop). Say "the devices customers use" or "newer hardware form factors".
+  - NEVER name specific engineering tooling (e.g. CI/CD product names, crash-log products, video-recording products). Say "our CI/CD pipeline", "diagnostic data", "usage recordings".
+  - When customer feedback quotes a specific vendor/protocol/device, generalize it in your paraphrase — don't repeat the name.
 - Skip pure noise; not every item must be clustered.
 - Order opportunities by customer_demand descending — the highest-ranked should read like business blockers, the lowest-ranked like optimizations.
 
