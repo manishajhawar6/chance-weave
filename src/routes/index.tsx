@@ -2211,11 +2211,11 @@ function CompareScreen({
           </div>
           <div>
             <div className="text-xs font-semibold uppercase tracking-widest text-primary">
-              Priority
+              Recommended priority
             </div>
             <div className="text-xs text-muted-foreground">
-              Emerges from both sides above. What carries this forward is the evidence, not the
-              number.
+              Emerges from customer demand, supporting evidence, and your inputs above. A
+              recommendation — not a verdict.
             </div>
           </div>
         </div>
