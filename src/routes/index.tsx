@@ -1789,33 +1789,38 @@ function EditorialExpansion({
             Add the two things AI can't know — engineering cost and strategic weight. Priority
             recomputes as you type.
           </p>
-          <div className="mt-4 rounded-lg border border-border/50 bg-surface p-4">
-            <div className="space-y-3">
-              <Stepper
-                label="Engineering effort"
-                hint="1 low · 10 high"
-                value={pmi.engineering_effort}
-                min={1}
-                max={10}
-                onChange={(v) => onPMChange({ engineering_effort: v })}
-              />
-              <Stepper
-                label="Strategic importance"
-                hint="1–5"
-                value={pmi.strategic_importance}
-                min={1}
-                max={5}
-                onChange={(v) => onPMChange({ strategic_importance: v })}
-              />
+          <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+            <div className="rounded-lg border border-border/50 bg-surface p-4">
+              <div className="space-y-3">
+                <Stepper
+                  label="Engineering effort"
+                  hint="1 low · 10 high"
+                  value={pmi.engineering_effort}
+                  min={1}
+                  max={10}
+                  onChange={(v) => onPMChange({ engineering_effort: v })}
+                />
+                <Stepper
+                  label="Strategic importance"
+                  hint="1–5"
+                  value={pmi.strategic_importance}
+                  min={1}
+                  max={5}
+                  onChange={(v) => onPMChange({ strategic_importance: v })}
+                />
+              </div>
+              <p className="mt-3 text-[11px] italic text-muted-foreground">
+                Adjust either input — watch the ladder rebuild.
+              </p>
             </div>
-            <div className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-border/40 pt-3 text-[11px] text-muted-foreground">
-              <span>AI {bd.ai}</span>
-              <span>+ Strategic {bd.strategic}</span>
-              <span>− Effort {bd.effortPenalty}</span>
-              <span className="ml-auto text-[13px] font-semibold tabular-nums text-foreground">
-                = {priority}
-              </span>
-            </div>
+            <PriorityLadder
+              ai={bd.ai}
+              strategic={bd.strategic}
+              effortPenalty={bd.effortPenalty}
+              total={priority}
+              hasStrategic={!!pmi.strategic_importance}
+              hasEffort={!!pmi.engineering_effort}
+            />
           </div>
         </section>
 
