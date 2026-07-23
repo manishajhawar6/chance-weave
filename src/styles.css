@@ -205,3 +205,82 @@
 @utility text-balance {
   text-wrap: balance;
 }
+
+/* ---------- Prism motion ---------- */
+
+@keyframes prism-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes prism-lift-in {
+  0% { opacity: 0; transform: translateY(8px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes prism-merge-in {
+  0% { opacity: 0; transform: translateX(-12px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes prism-quote-in {
+  0% { opacity: 0; transform: translateY(6px); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes prism-pulse-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 35%, transparent); }
+  70% { box-shadow: 0 0 0 10px color-mix(in oklab, var(--primary) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 0%, transparent); }
+}
+@keyframes prism-draw {
+  0% { stroke-dashoffset: 100; opacity: 0.2; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+@keyframes prism-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@utility animate-prism-float {
+  animation: prism-float 4s ease-in-out infinite;
+}
+@utility animate-prism-lift {
+  animation: prism-lift-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@utility animate-prism-merge {
+  animation: prism-merge-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@utility animate-prism-quote {
+  animation: prism-quote-in 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+@utility animate-prism-pulse-ring {
+  animation: prism-pulse-ring 1.8s ease-out infinite;
+}
+@utility animate-prism-draw {
+  stroke-dasharray: 100;
+  animation: prism-draw 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Subtle hover-lift for interactive cards */
+@utility hover-lift {
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              border-color 0.25s ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevate-2);
+  }
+}
+
+/* Shimmer text for the "thinking" moment */
+@utility text-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--muted-foreground) 0%,
+    var(--foreground) 45%,
+    var(--primary) 55%,
+    var(--muted-foreground) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: prism-shimmer 3s linear infinite;
+}
