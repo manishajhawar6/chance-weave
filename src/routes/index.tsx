@@ -956,7 +956,7 @@ function OpportunitiesScreen({
               <div
                 key={i}
                 className={cn(
-                  "grid grid-cols-[36px_minmax(0,2.2fr)_110px_minmax(0,1.4fr)_120px_240px_180px] items-start gap-3 border-b border-border/60 px-4 py-3 transition-colors last:border-b-0",
+                  "hover-lift animate-prism-lift grid grid-cols-[36px_minmax(0,2.2fr)_110px_minmax(0,1.4fr)_120px_240px_180px] items-start gap-3 border-b border-border/60 bg-card px-4 py-3 last:border-b-0",
                   selected.has(i) && "bg-primary/5",
                 )}
               >
