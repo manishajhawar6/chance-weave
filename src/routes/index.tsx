@@ -377,8 +377,55 @@ function UploadScreen({
   onDemo: () => void;
 }) {
   const [dragging, setDragging] = useState(false);
+
+  // Page-level drop zone: dragging over any part of the screen surfaces a soft
+  // full-page overlay, so the CSV drop target isn't limited to the button.
+  useEffect(() => {
+    const onDragEnter = (e: DragEvent) => {
+      if (e.dataTransfer?.types?.includes("Files")) setDragging(true);
+    };
+    const onDragOver = (e: DragEvent) => {
+      if (e.dataTransfer?.types?.includes("Files")) e.preventDefault();
+    };
+    const onDragLeave = (e: DragEvent) => {
+      if ((e as unknown as { relatedTarget: EventTarget | null }).relatedTarget === null) {
+        setDragging(false);
+      }
+    };
+    const onDrop = (e: DragEvent) => {
+      if (!e.dataTransfer?.files?.length) return;
+      e.preventDefault();
+      setDragging(false);
+      const file = e.dataTransfer.files[0];
+      if (file) onFile(file);
+    };
+    window.addEventListener("dragenter", onDragEnter);
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("dragleave", onDragLeave);
+    window.addEventListener("drop", onDrop);
+    return () => {
+      window.removeEventListener("dragenter", onDragEnter);
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("dragleave", onDragLeave);
+      window.removeEventListener("drop", onDrop);
+    };
+  }, [onFile]);
+
   return (
     <div className="mx-auto max-w-5xl px-6 pb-8">
+      {/* Page-level drop overlay */}
+      {dragging && (
+        <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-md">
+          <div className="animate-prism-lift flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-primary/60 bg-surface/80 px-10 py-8 shadow-glow">
+            <Upload className="h-8 w-8 text-primary" />
+            <div className="text-[15px] font-semibold tracking-tight">Drop your CSV to analyze</div>
+            <div className="text-[12px] text-muted-foreground">
+              Auto-detects the feedback column · Stays in this session
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 1 — Hero */}
       <section className="flex min-h-[calc(68vh-57px)] flex-col items-center justify-center pt-8 pb-4 text-center">
         <h1 className="text-balance text-[52px] font-semibold leading-[1.02] tracking-tight sm:text-7xl">
