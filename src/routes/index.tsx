@@ -377,20 +377,20 @@ function UploadScreen({
 }) {
   const [dragging, setDragging] = useState(false);
   return (
-    <div className="mx-auto max-w-5xl px-6 pb-32">
+    <div className="mx-auto max-w-5xl px-6 pb-12">
       {/* 1 — Hero */}
-      <section className="flex min-h-[calc(100vh-57px)] flex-col items-center justify-center py-24 text-center">
+      <section className="flex min-h-[calc(90vh-57px)] flex-col items-center justify-center py-12 text-center">
         <h1 className="text-balance text-[52px] font-semibold leading-[1.02] tracking-tight sm:text-7xl">
           Turn customer conversations
           <br className="hidden sm:block" />{" "}
           into <span className="text-primary">confident</span> product decisions.
         </h1>
-        <p className="mt-8 max-w-xl text-balance text-lg leading-relaxed text-muted-foreground">
+        <p className="mt-6 max-w-xl text-balance text-lg leading-relaxed text-muted-foreground">
           Prism reads scattered customer conversations, surfaces the opportunities inside, and
           hands you the evidence to prioritize with conviction.
         </p>
 
-        <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button onClick={onDemo} size="lg" className="h-12 px-6 text-base shadow-elevate-2">
             <Play className="mr-2 h-4 w-4" />
             Run demo
@@ -428,59 +428,59 @@ function UploadScreen({
             />
           </label>
         </div>
-        <p className="mt-6 text-xs text-muted-foreground">
+        <p className="mt-4 text-xs text-muted-foreground">
           Auto-detects the feedback column · First 200 rows · ~15s analysis
         </p>
       </section>
 
       {/* 2 — AI reasoning animation */}
-      <section className="border-t border-border/50 py-28">
+      <section id="how-it-works" className="scroll-mt-20 border-t border-border/50 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             How Prism thinks
           </p>
-          <h2 className="mt-3 text-4xl font-semibold tracking-tight">
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
             Evidence in. Reasoning out.
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+          <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
             Every opportunity carries the trail it was built from — customer voices, recurring
             patterns, and the rationale behind the recommendation.
           </p>
         </div>
-        <div className="mt-12">
+        <div className="mx-auto mt-8 max-w-3xl">
           <AIReasoningPipeline stage="opportunity" />
         </div>
       </section>
 
       {/* 3 — Workspace preview */}
-      <section className="border-t border-border/50 py-28">
+      <section id="workspace" className="scroll-mt-20 border-t border-border/50 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             The workspace
           </p>
-          <h2 className="mt-3 text-4xl font-semibold tracking-tight">
+          <h2 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
             Opportunities you can defend in a roadmap review.
           </h2>
         </div>
-        <div className="mt-12 overflow-hidden rounded-2xl border border-border/60 bg-surface/70 shadow-elevate-3">
+        <div className="mt-8 overflow-hidden rounded-xl border border-border/60 bg-surface/70 shadow-elevate-2">
           <WorkspacePreview />
         </div>
       </section>
 
       {/* 4 — Philosophy */}
-      <section className="border-t border-border/50 py-32 text-center">
+      <section id="philosophy" className="scroll-mt-20 border-t border-border/50 py-16 text-center">
         <p className="text-balance text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
           <span className="text-primary">AI synthesizes.</span>{" "}
           <span className="text-foreground">You decide.</span>
         </p>
-        <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-muted-foreground">
+        <p className="mx-auto mt-4 max-w-lg text-[15px] leading-relaxed text-muted-foreground">
           Prism never makes the roadmap call. It hands you the evidence, the patterns, and the
           rationale — then steps back.
         </p>
       </section>
 
       {/* 5 — Footer */}
-      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border/50 py-10 text-xs text-muted-foreground">
+      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border/50 py-8 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <PrismMark className="h-4 w-4 text-primary" />
           <span className="font-medium text-foreground">Prism</span>
@@ -501,7 +501,7 @@ function WorkspacePreview() {
   ];
   return (
     <div className="text-[13px]">
-      <div className="grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 border-b border-border/60 bg-muted/20 px-6 py-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+      <div className="grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 border-b border-border/50 bg-muted/20 px-6 py-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
         <div>Opportunity</div>
         <div>Demand</div>
         <div>Impact</div>
@@ -511,8 +511,8 @@ function WorkspacePreview() {
         <div
           key={r.title}
           className={cn(
-            "grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 px-6 py-4",
-            i < rows.length - 1 && "border-b border-border/40",
+            "grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 px-6 py-5",
+            i < rows.length - 1 && "border-b border-border/30",
           )}
         >
           <div className="font-medium">{r.title}</div>
@@ -533,6 +533,7 @@ function WorkspacePreview() {
     </div>
   );
 }
+
 
 
 
