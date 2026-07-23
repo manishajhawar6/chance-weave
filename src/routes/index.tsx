@@ -462,7 +462,7 @@ function UploadScreen({
             Opportunities you can defend in a roadmap review.
           </h2>
         </div>
-        <div className="mt-6 overflow-hidden rounded-xl border border-border/60 bg-surface/70 shadow-elevate-2">
+        <div className="mt-8 overflow-hidden rounded-2xl border border-border/50 bg-surface shadow-elevate-3 ring-1 ring-black/[0.02]">
           <WorkspacePreview />
         </div>
       </section>
