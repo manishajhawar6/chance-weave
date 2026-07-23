@@ -20,10 +20,10 @@ import {
   Search,
   Eye,
   Pause,
-  Lock,
   Play,
-  Compass,
   FileText,
+
+
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
@@ -306,7 +306,7 @@ function FlowStepper({ screen }: { screen: Screen }) {
           <span className="hidden text-muted-foreground/70 sm:inline">·</span>
           <span className="hidden text-[11px] font-medium tracking-wide text-muted-foreground sm:inline">
             <span className="text-primary/80">AI synthesizes.</span>{" "}
-            <span className="text-amber-600 dark:text-amber-400">You decide.</span>
+            <span className="text-foreground/80">You decide.</span>
           </span>
         </div>
         <div className="ml-auto hidden items-center gap-1.5 md:flex">
@@ -356,175 +356,163 @@ function UploadScreen({
 }) {
   const [dragging, setDragging] = useState(false);
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-57px)] max-w-5xl flex-col items-center px-6 pb-24 pt-16 sm:pt-24">
-      <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border/70 bg-surface/70 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground shadow-elevate-1 backdrop-blur">
-        <span className="relative flex h-1.5 w-1.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/50" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-        </span>
-        Prism · for product managers
-      </div>
+    <div className="mx-auto max-w-5xl px-6 pb-32">
+      {/* 1 — Hero */}
+      <section className="flex min-h-[calc(100vh-57px)] flex-col items-center justify-center py-24 text-center">
+        <h1 className="text-balance text-[52px] font-semibold leading-[1.02] tracking-tight sm:text-7xl">
+          Turn customer conversations
+          <br className="hidden sm:block" />{" "}
+          into <span className="text-primary">confident</span> product decisions.
+        </h1>
+        <p className="mt-8 max-w-xl text-balance text-lg leading-relaxed text-muted-foreground">
+          Prism reads scattered customer conversations, surfaces the opportunities inside, and
+          hands you the evidence to prioritize with conviction.
+        </p>
 
-      <h1 className="text-balance text-center text-[44px] font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-        Turn customer conversations
-        <br className="hidden sm:block" />{" "}
-        into <span className="bg-gradient-to-r from-primary to-[oklch(0.66_0.2_285)] bg-clip-text text-transparent">confident</span> product decisions.
-      </h1>
-      <p className="mt-6 max-w-xl text-balance text-center text-[15px] leading-relaxed text-muted-foreground sm:text-base">
-        Prism reads scattered customer conversations, surfaces the opportunities hiding inside, and
-        hands you the evidence to prioritize with conviction. AI synthesizes. You decide.
-      </p>
-
-      {/* Transformation strip — the product promise in five seconds */}
-      <TransformationStrip />
-
-      <label
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragging(false);
-          const file = e.dataTransfer.files?.[0];
-          if (file) onFile(file);
-        }}
-        className={cn(
-          "group mt-10 flex w-full max-w-2xl cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-10 text-center transition-all",
-          dragging
-            ? "border-primary/70 bg-primary/[0.04] shadow-glow"
-            : "border-border/70 bg-surface/60 hover:border-primary/40 hover:bg-surface/80",
-        )}
-      >
-        <div className="rounded-xl bg-primary/10 p-3 ring-1 ring-primary/15 transition-transform group-hover:scale-105">
-          <Upload className="h-5 w-5 text-primary" />
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
+          <Button onClick={onDemo} size="lg" className="h-12 px-6 text-base shadow-elevate-2">
+            <Play className="mr-2 h-4 w-4" />
+            Run demo
+          </Button>
+          <label
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              const file = e.dataTransfer.files?.[0];
+              if (file) onFile(file);
+            }}
+            className={cn(
+              "inline-flex h-12 cursor-pointer items-center justify-center rounded-md border bg-transparent px-6 text-base font-medium transition-colors",
+              dragging
+                ? "border-primary/60 bg-primary/[0.04] text-primary"
+                : "border-border hover:border-foreground/30",
+            )}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Upload CSV
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              className="sr-only"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onFile(file);
+                e.target.value = "";
+              }}
+            />
+          </label>
         </div>
-        <p className="text-sm font-medium">Drop a CSV of customer conversations</p>
-        <p className="text-xs text-muted-foreground">
+        <p className="mt-6 text-xs text-muted-foreground">
           Auto-detects the feedback column · First 200 rows · ~15s analysis
         </p>
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          className="sr-only"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) onFile(file);
-            e.target.value = "";
-          }}
-        />
-      </label>
+      </section>
 
-      {/* Prominent demo path — the first thing a recruiter clicks */}
-      <div className="mt-4 flex w-full max-w-2xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.08] via-primary/[0.04] to-transparent p-4 pl-5 shadow-elevate-1">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <div className="rounded-md bg-primary/15 p-1.5">
-              <Play className="h-3.5 w-3.5 text-primary" />
-            </div>
-            <span className="text-sm font-semibold">See it in one click</span>
-          </div>
-          <p className="mt-1 max-w-md text-xs text-muted-foreground">
-            30 synthetic customer conversations. Nothing uploaded — the flow runs on a sample set.
+      {/* 2 — AI reasoning animation */}
+      <section className="border-t border-border/50 py-28">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            How Prism thinks
+          </p>
+          <h2 className="mt-3 text-4xl font-semibold tracking-tight">
+            Evidence in. Reasoning out.
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+            Every opportunity carries the trail it was built from — customer voices, recurring
+            patterns, and the rationale behind the recommendation.
           </p>
         </div>
-        <Button onClick={onDemo} size="lg" className="shrink-0 shadow-elevate-2">
-          <Play className="mr-2 h-4 w-4" />
-          Run synthetic demo
-        </Button>
-      </div>
-
-
-      <div className="mt-12 grid w-full max-w-3xl gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-border/60 bg-surface/70 p-5">
-          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-primary">
-            <Compass className="h-3.5 w-3.5" />
-            You'll leave with
-          </div>
-          <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-foreground/85">
-            <li className="flex items-start gap-2.5">
-              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
-              Opportunities ranked by real evidence
-            </li>
-            <li className="flex items-start gap-2.5">
-              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
-              Recurring themes and customer-demand patterns
-            </li>
-            <li className="flex items-start gap-2.5">
-              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
-              A priority brief you'd take into a roadmap meeting
-            </li>
-          </ul>
+        <div className="mt-12">
+          <AIReasoningPipeline stage="opportunity" />
         </div>
-        <div className="rounded-xl border border-border/60 bg-surface/70 p-5">
-          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            <Lock className="h-3.5 w-3.5" />
-            What you can trust
-          </div>
-          <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-foreground/85">
-            <li className="flex items-start gap-2.5">
-              <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-              Your CSV stays within this analysis session
-            </li>
-            <li className="flex items-start gap-2.5">
-              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-              Every claim links back to a customer quote
-            </li>
-            <li className="flex items-start gap-2.5">
-              <UserIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-              AI never makes the roadmap call — you do
-            </li>
-          </ul>
+      </section>
+
+      {/* 3 — Workspace preview */}
+      <section className="border-t border-border/50 py-28">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            The workspace
+          </p>
+          <h2 className="mt-3 text-4xl font-semibold tracking-tight">
+            Opportunities you can defend in a roadmap review.
+          </h2>
         </div>
-      </div>
+        <div className="mt-12 overflow-hidden rounded-2xl border border-border/60 bg-surface/70 shadow-elevate-3">
+          <WorkspacePreview />
+        </div>
+      </section>
+
+      {/* 4 — Philosophy */}
+      <section className="border-t border-border/50 py-32 text-center">
+        <p className="text-balance text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+          <span className="text-primary">AI synthesizes.</span>{" "}
+          <span className="text-foreground">You decide.</span>
+        </p>
+        <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-muted-foreground">
+          Prism never makes the roadmap call. It hands you the evidence, the patterns, and the
+          rationale — then steps back.
+        </p>
+      </section>
+
+      {/* 5 — Footer */}
+      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border/50 py-10 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <PrismMark className="h-4 w-4 text-primary" />
+          <span className="font-medium text-foreground">Prism</span>
+          <span>— Confident product decisions from customer conversations.</span>
+        </div>
+        <span>Built for product managers.</span>
+      </footer>
     </div>
   );
 }
 
-// A five-second visual answer to "what does Prism do?"
-function TransformationStrip() {
-  const steps: { icon: typeof Users; label: string; sub: string }[] = [
-    { icon: Users, label: "Scattered conversations", sub: "CSV of customer voices" },
-    { icon: Sparkles, label: "AI reasoning", sub: "Cluster · evidence · rationale" },
-    { icon: Layers, label: "Clear opportunities", sub: "Ranked, with sources" },
-    { icon: Rocket, label: "Confident decision", sub: "You own the call" },
+// A static, non-interactive snapshot of what the workspace looks like after analysis.
+function WorkspacePreview() {
+  const rows = [
+    { title: "Enterprise readiness", demand: 92, impact: "critical" as const, priority: 87 },
+    { title: "Mobile reliability", demand: 74, impact: "high" as const, priority: 62 },
+    { title: "Search improvements", demand: 51, impact: "medium" as const, priority: 38 },
   ];
   return (
-    <div className="mt-10 grid w-full max-w-3xl grid-cols-1 gap-2 rounded-2xl border border-border/60 bg-surface/60 p-2 shadow-elevate-1 sm:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]">
-      {steps.map((s, i) => {
-        const Icon = s.icon;
-        return (
-          <div key={s.label} className="contents">
-            <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
-              <div
-                className={cn(
-                  "grid h-8 w-8 shrink-0 place-items-center rounded-lg",
-                  i === 3
-                    ? "bg-primary text-primary-foreground shadow-elevate-2"
-                    : "bg-primary/10 text-primary",
-                )}
-              >
-                <Icon className="h-4 w-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="truncate text-[13px] font-medium leading-tight">{s.label}</div>
-                <div className="truncate text-[11px] text-muted-foreground">{s.sub}</div>
-              </div>
-            </div>
-            {i < steps.length - 1 && (
-              <div className="hidden items-center justify-center text-muted-foreground/50 sm:flex">
-                <svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden>
-                  <path d="M1 6 H16 M11 1 L16 6 L11 11" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            )}
+    <div className="text-[13px]">
+      <div className="grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 border-b border-border/60 bg-muted/20 px-6 py-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <div>Opportunity</div>
+        <div>Demand</div>
+        <div>Impact</div>
+        <div className="text-right">Priority</div>
+      </div>
+      {rows.map((r, i) => (
+        <div
+          key={r.title}
+          className={cn(
+            "grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 px-6 py-4",
+            i < rows.length - 1 && "border-b border-border/40",
+          )}
+        >
+          <div className="font-medium">{r.title}</div>
+          <MeterCell value={r.demand} />
+          <div>
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[11px] font-medium capitalize",
+                IMPACT_TONE[r.impact],
+              )}
+            >
+              {r.impact}
+            </span>
           </div>
-        );
-      })}
+          <div className="text-right text-lg font-semibold tabular-nums">{r.priority}</div>
+        </div>
+      ))}
     </div>
   );
 }
+
 
 
 // ---------- Screen 2: Processing (live signal clustering) ----------
@@ -738,7 +726,7 @@ function AIReasoningPipeline({
         </span>
         <span className="hidden text-[10px] text-muted-foreground sm:inline">
           <span className="text-primary">AI synthesizes</span> ·{" "}
-          <span className="text-amber-600 dark:text-amber-400">you decide</span>
+          <span className="text-foreground/80">you decide</span>
         </span>
       </div>
       <div className="grid grid-cols-4 items-stretch gap-1.5">
@@ -753,7 +741,7 @@ function AIReasoningPipeline({
                 className={cn(
                   "flex h-full flex-col items-start gap-1 rounded-xl border p-2.5 transition-all duration-500",
                   isActive && !isPm && "border-primary/50 bg-primary/[0.06] shadow-elevate-2 -translate-y-0.5",
-                  isActive && isPm && "border-amber-500/50 bg-amber-500/[0.06]",
+                  isActive && isPm && "border-border bg-muted/40",
                   isPast && "border-primary/25 bg-primary/[0.03]",
                   !isActive && !isPast && "border-border/60 bg-transparent opacity-70",
                 )}
@@ -764,8 +752,8 @@ function AIReasoningPipeline({
                       "grid h-6 w-6 place-items-center rounded-md transition-colors",
                       isPm
                         ? isActive
-                          ? "bg-amber-500 text-white"
-                          : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                          ? "bg-foreground text-white"
+                          : "bg-muted/40 text-foreground/80"
                         : isActive || isPast
                           ? "bg-primary text-primary-foreground"
                           : "bg-primary/10 text-primary/60",
@@ -823,7 +811,7 @@ function PMChip({ children, className }: { children: React.ReactNode; className?
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/5 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400",
+        "inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-foreground/80",
         className,
       )}
     >
@@ -874,6 +862,7 @@ function OpportunitiesScreen({
   onReset: () => void;
 }) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
 
   const rows = useMemo(
     () =>
@@ -883,8 +872,16 @@ function OpportunitiesScreen({
     [result.opportunities, pm],
   );
 
-  const toggle = (i: number) =>
+  const toggleSelect = (i: number) =>
     setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      return next;
+    });
+
+  const toggleExpand = (i: number) =>
+    setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(i)) next.delete(i);
       else next.add(i);
@@ -894,212 +891,215 @@ function OpportunitiesScreen({
   const updatePM = (i: number, patch: Partial<PMInput>) =>
     setPm((prev) => ({ ...prev, [i]: { ...prev[i], ...patch } }));
 
+  const cols = "grid-cols-[32px_minmax(0,3fr)_120px_110px_100px_28px]";
+
   return (
-    <div className="mx-auto max-w-[1400px] px-6 py-10">
+    <div className="mx-auto max-w-6xl px-6 py-16">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
+          <h1 className="text-4xl font-semibold tracking-tight">
             What opportunities are emerging?
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            {result.opportunities.length} opportunities extracted from {result.feedback.length}{" "}
-            feedback items. AI supplied demand, evidence, and impact; add your effort and strategic
-            scores to see the final priority. Select 2+ to compare side-by-side.
+          <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+            {result.opportunities.length} opportunities from {result.feedback.length} conversations.
+            Expand a row to see the evidence and add your PM inputs.
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={onReset}>
+        <Button variant="ghost" size="sm" onClick={onReset}>
           <Upload className="mr-2 h-4 w-4" />
           New upload
         </Button>
       </div>
 
       {result.themes.length > 0 && (
-        <div className="mt-6 flex flex-wrap items-center gap-2">
-          <div className="mr-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Layers className="h-3.5 w-3.5" />
-            Recurring themes
-          </div>
-          <AIChip>AI</AIChip>
+        <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+          <span className="uppercase tracking-widest">Themes</span>
           {result.themes.map((t) => (
-            <Badge key={t.name} variant="secondary" className="text-xs" title={t.description}>
+            <span key={t.name} className="text-foreground/80" title={t.description}>
               {t.name}
-            </Badge>
+            </span>
           ))}
         </div>
       )}
 
-      <div className="mt-8 overflow-x-auto rounded-xl border border-border/60">
-        <div className="min-w-[1100px]">
-          <div className="grid grid-cols-[36px_minmax(0,2.2fr)_110px_minmax(0,1.4fr)_120px_240px_180px] items-center gap-3 border-b border-border/60 bg-muted/30 px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            <div />
-            <div>Opportunity</div>
-            <div className="flex items-center gap-1">
-              <Users className="h-3 w-3" /> Demand <AIChip>AI</AIChip>
-            </div>
-            <div className="flex items-center gap-1">
-              <Quote className="h-3 w-3" /> Evidence <AIChip>AI</AIChip>
-            </div>
-            <div className="flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" /> Impact <AIChip>AI</AIChip>
-            </div>
-            <div className="flex items-center gap-1">
-              PM Inputs <PMChip>You</PMChip>
-            </div>
-            <div className="text-right">Final Priority</div>
-          </div>
-          {rows.map(({ op, i, priority }) => {
-            const decision = decisions[i];
-            const pmi = pm[i] ?? {};
-            const bd = priorityBreakdown(op, pmi);
-            const quote = result.feedback[op.representative_quote_index];
-            return (
-              <div
-                key={i}
-                className={cn(
-                  "hover-lift animate-prism-lift grid grid-cols-[36px_minmax(0,2.2fr)_110px_minmax(0,1.4fr)_120px_240px_180px] items-start gap-3 border-b border-border/60 bg-card px-4 py-3 last:border-b-0",
-                  selected.has(i) && "bg-primary/5",
-                )}
-              >
+      <div className="mt-12">
+        <div className={cn("grid items-center gap-4 border-b border-border/60 pb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground", cols)}>
+          <div />
+          <div>Opportunity</div>
+          <div>Demand</div>
+          <div>Impact</div>
+          <div className="text-right">Priority</div>
+          <div />
+        </div>
+        {rows.map(({ op, i, priority }) => {
+          const decision = decisions[i];
+          const pmi = pm[i] ?? {};
+          const bd = priorityBreakdown(op, pmi);
+          const quote = result.feedback[op.representative_quote_index];
+          const isOpen = expanded.has(i);
+          return (
+            <div key={i} className="border-b border-border/40">
+              <div className={cn("grid items-center gap-4 py-5", cols, selected.has(i) && "bg-primary/[0.03]")}>
                 <Checkbox
                   checked={selected.has(i)}
-                  onCheckedChange={() => toggle(i)}
+                  onCheckedChange={() => toggleSelect(i)}
                   aria-label={`Select ${op.title}`}
-                  className="mt-1"
                 />
                 <button onClick={() => onOpen(i)} className="text-left">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-semibold hover:underline">{op.title}</span>
+                    <span className="text-[15px] font-medium hover:underline">{op.title}</span>
                     {decision && (
-                      <span
-                        className={cn(
-                          "rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
-                          DECISION_META[decision].tone,
-                        )}
-                      >
+                      <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", DECISION_META[decision].tone)}>
                         {DECISION_META[decision].label}
                       </span>
                     )}
                   </div>
-                  <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                  <div className="mt-1 line-clamp-1 text-[13px] text-muted-foreground">
                     {op.problem}
                   </div>
                 </button>
                 <MeterCell value={op.customer_demand} />
-                <div className="text-xs text-muted-foreground">
-                  <div className="font-medium text-foreground">
-                    {op.evidence_indices.length} quote
-                    {op.evidence_indices.length === 1 ? "" : "s"}
-                  </div>
-                  {quote && (
-                    <div className="mt-1 line-clamp-2 italic">
-                      "{quote.slice(0, 90)}
-                      {quote.length > 90 ? "…" : ""}"
-                    </div>
-                  )}
-                </div>
                 <div>
-                  <span
-                    className={cn(
-                      "rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-                      IMPACT_TONE[op.business_impact],
-                    )}
-                  >
+                  <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium capitalize", IMPACT_TONE[op.business_impact])}>
                     {op.business_impact}
                   </span>
-                  <div className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <ShieldCheck className="h-3 w-3" />
-                    {Math.round(op.confidence)}% conf.
-                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Effort
-                    </Label>
-                    <NumInput
-                      value={pmi.engineering_effort}
-                      onChange={(v) => updatePM(i, { engineering_effort: v })}
-                      min={1}
-                      max={10}
-                      placeholder="1-10"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Strategic
-                    </Label>
-                    <NumInput
-                      value={pmi.strategic_importance}
-                      onChange={(v) => updatePM(i, { strategic_importance: v })}
-                      min={1}
-                      max={5}
-                      placeholder="1-5"
-                    />
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-semibold tabular-nums">{priority}</div>
-                  <div className="mt-1 flex flex-wrap justify-end gap-1 text-[10px]">
-                    <span className="rounded border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-primary">
-                      AI {bd.ai}
-                    </span>
-                    <span
-                      className={cn(
-                        "rounded border px-1.5 py-0.5",
-                        bd.strategic > 0
-                          ? "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400"
-                          : "border-dashed border-border text-muted-foreground",
-                      )}
-                    >
-                      + You {bd.strategic}
-                    </span>
-                    {bd.effortPenalty > 0 && (
-                      <span className="rounded border border-amber-500/30 bg-amber-500/5 px-1.5 py-0.5 text-amber-600 dark:text-amber-400">
-                        − Effort {bd.effortPenalty}
-                      </span>
-                    )}
-                  </div>
-                </div>
+                <div className="text-right text-2xl font-semibold tabular-nums">{priority}</div>
+                <button
+                  onClick={() => toggleExpand(i)}
+                  aria-label={isOpen ? "Collapse" : "Expand"}
+                  className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden className={cn("transition-transform", isOpen && "rotate-180")}>
+                    <path d="M2 4 L6 8 L10 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
               </div>
-            );
-          })}
-        </div>
+
+              {isOpen && (
+                <div className="animate-prism-lift grid gap-8 pb-8 pl-[calc(32px+1rem)] pr-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Evidence · {op.evidence_indices.length} quote{op.evidence_indices.length === 1 ? "" : "s"}
+                    </div>
+                    {quote && (
+                      <blockquote className="mt-3 border-l-2 border-primary/40 pl-4 text-[14px] italic leading-relaxed text-foreground/80">
+                        "{quote.slice(0, 220)}{quote.length > 220 ? "…" : ""}"
+                      </blockquote>
+                    )}
+                    <div className="mt-4 text-[12px] text-muted-foreground">
+                      Confidence · {Math.round(op.confidence)}%
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Your inputs
+                    </div>
+                    <div className="mt-3 space-y-3">
+                      <Stepper
+                        label="Engineering effort"
+                        hint="1 low · 10 high"
+                        value={pmi.engineering_effort}
+                        min={1}
+                        max={10}
+                        onChange={(v) => updatePM(i, { engineering_effort: v })}
+                      />
+                      <Stepper
+                        label="Strategic importance"
+                        hint="1–5"
+                        value={pmi.strategic_importance}
+                        min={1}
+                        max={5}
+                        onChange={(v) => updatePM(i, { strategic_importance: v })}
+                      />
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-1.5 text-[10px] text-muted-foreground">
+                      <span>AI {bd.ai}</span>
+                      <span>·</span>
+                      <span>+ Strategic {bd.strategic}</span>
+                      <span>·</span>
+                      <span>− Effort {bd.effortPenalty}</span>
+                      <span>·</span>
+                      <span className="font-semibold text-foreground">= {priority}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      <p className="mt-3 text-[11px] text-muted-foreground">
-        Priority is not a single opaque score. It's{" "}
-        <span className="text-primary">AI-inferred customer signal</span> +{" "}
-        <span className="text-amber-600 dark:text-amber-400">your strategic importance</span> −{" "}
-        <span className="text-amber-600 dark:text-amber-400">your engineering effort</span>. Each
-        row shows the parts so you can see where the number comes from.
+      <p className="mt-6 max-w-2xl text-[12px] text-muted-foreground">
+        Priority = AI-inferred customer signal + your strategic importance − your engineering effort.
       </p>
 
-
-      <div className="sticky bottom-4 mt-6 flex justify-center">
-        <div
-          className={cn(
-            "flex items-center gap-3 rounded-full border border-border bg-card/95 px-4 py-2 shadow-lg backdrop-blur transition-opacity",
-            selected.size === 0 && "opacity-60",
-          )}
-        >
+      <div className="sticky bottom-6 mt-10 flex justify-center">
+        <div className={cn("flex items-center gap-3 rounded-full border border-border bg-card/95 px-4 py-2 shadow-elevate-2 backdrop-blur transition-opacity", selected.size === 0 && "opacity-60")}>
           <span className="text-xs text-muted-foreground">
-            {selected.size === 0
-              ? "Select opportunities to compare"
-              : `${selected.size} selected`}
+            {selected.size === 0 ? "Select opportunities to compare" : `${selected.size} selected`}
           </span>
-          <Button
-            size="sm"
-            disabled={selected.size < 2}
-            onClick={() => onCompare([...selected].sort((a, b) => a - b))}
-          >
-            <Layers className="mr-2 h-4 w-4" />
-            Compare side-by-side
+          <Button size="sm" disabled={selected.size < 2} onClick={() => onCompare([...selected].sort((a, b) => a - b))}>
+            Compare
           </Button>
         </div>
       </div>
     </div>
   );
 }
+
+function Stepper({
+  label,
+  hint,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  value?: number;
+  min: number;
+  max: number;
+  onChange: (v: number | undefined) => void;
+}) {
+  const cur = value ?? 0;
+  const dec = () => onChange(value === undefined ? min : Math.max(min, cur - 1));
+  const inc = () => onChange(value === undefined ? min : Math.min(max, cur + 1));
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <div className="text-[13px] font-medium">{label}</div>
+        {hint && <div className="text-[11px] text-muted-foreground">{hint}</div>}
+      </div>
+      <div className="flex items-center gap-1 rounded-md border border-border/70 bg-surface/60 p-0.5">
+        <button
+          type="button"
+          onClick={dec}
+          disabled={value !== undefined && value <= min}
+          aria-label={`Decrease ${label}`}
+          className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30"
+        >
+          −
+        </button>
+        <div className="w-6 text-center text-[13px] font-semibold tabular-nums">
+          {value ?? "–"}
+        </div>
+        <button
+          type="button"
+          onClick={inc}
+          disabled={value !== undefined && value >= max}
+          aria-label={`Increase ${label}`}
+          className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
 
 function MeterCell({ value, tone = "primary" }: { value: number; tone?: "primary" | "muted" }) {
   return (
@@ -1147,7 +1147,7 @@ function NumInput({
         if (Number.isNaN(n)) return;
         onChange(Math.max(min, Math.min(max, n)));
       }}
-      className="h-8 border-amber-500/30 bg-amber-500/5 text-sm"
+      className="h-8 border-border bg-muted/40 text-sm"
     />
   );
 }
@@ -1192,7 +1192,7 @@ function CompareScreen({
       <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
         Two clearly-separated inputs feed the recommendation:{" "}
         <span className="text-primary">what AI inferred from customer feedback</span> and{" "}
-        <span className="text-amber-600 dark:text-amber-400">what you contribute as PM</span>. The
+        <span className="text-foreground/80">what you contribute as PM</span>. The
         priority recommendation lives underneath both — never as just another column.
       </p>
 
@@ -1339,7 +1339,7 @@ function CompareScreen({
                 value={pm[i]?.revenue_opportunity ?? ""}
                 placeholder="e.g. $40k ARR at risk"
                 onChange={(e) => updatePM(i, { revenue_opportunity: e.target.value })}
-                className="h-8 border-amber-500/30 bg-amber-500/5 text-sm"
+                className="h-8 border-border bg-muted/40 text-sm"
               />
             </CompareCell>
           ))}
@@ -1410,14 +1410,14 @@ function CompareScreen({
                     className={cn(
                       "rounded border px-1.5 py-0.5",
                       bd.strategic > 0
-                        ? "border-amber-500/30 bg-amber-500/5 text-amber-600 dark:text-amber-400"
+                        ? "border-border bg-muted/40 text-foreground/80"
                         : "border-dashed border-border text-muted-foreground",
                     )}
                   >
                     + You {bd.strategic}
                   </span>
                   {bd.effortPenalty > 0 && (
-                    <span className="rounded border border-amber-500/30 bg-amber-500/5 px-1.5 py-0.5 text-amber-600 dark:text-amber-400">
+                    <span className="rounded border border-border bg-muted/40 px-1.5 py-0.5 text-foreground/80">
                       − Effort {bd.effortPenalty}
                     </span>
                   )}
@@ -1454,7 +1454,7 @@ function CompareRowLabel({
       className={cn(
         "flex items-center gap-2 rounded-md px-3 py-3 text-xs font-semibold uppercase tracking-wider",
         tone === "ai" && "bg-primary/5 text-primary",
-        tone === "pm" && "bg-amber-500/5 text-amber-600 dark:text-amber-400",
+        tone === "pm" && "bg-muted/40 text-foreground/80",
         !tone && "bg-muted/40 text-foreground",
       )}
     >
@@ -1475,7 +1475,7 @@ function CompareCell({
       className={cn(
         "rounded-lg border bg-card p-3",
         tone === "ai" && "border-primary/20",
-        tone === "pm" && "border-amber-500/30",
+        tone === "pm" && "border-border",
         !tone && "border-border/60",
       )}
     >
@@ -1500,7 +1500,7 @@ function CompareGroupHeader({
         "mt-2 flex items-center gap-2 rounded-md border px-3 py-2 text-[11px] font-semibold uppercase tracking-widest",
         tone === "ai"
           ? "border-primary/30 bg-primary/10 text-primary"
-          : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+          : "border-border bg-muted/40 text-foreground/80",
       )}
     >
       {tone === "ai" ? <Bot className="h-3.5 w-3.5" /> : <UserIcon className="h-3.5 w-3.5" />}
@@ -1640,7 +1640,7 @@ function DetailScreen({
             value={pm?.revenue_opportunity ?? ""}
             onChange={(e) => patch({ revenue_opportunity: e.target.value })}
             placeholder="e.g. $40k ARR at risk across 3 enterprise renewals"
-            className="mt-1 h-9 border-amber-500/30 bg-amber-500/5 text-sm"
+            className="mt-1 h-9 border-border bg-muted/40 text-sm"
           />
           <p className="mt-1 text-[11px] text-muted-foreground">
             <PMChip>You</PMChip> <span className="ml-1">The AI can count mentions; it can't count dollars.</span>
@@ -1711,7 +1711,7 @@ function DetailScreen({
         lede="Priority emerges from AI-observed customer signal combined with your effort and strategic scoring — not a single opaque number."
       >
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
+          <div className="rounded-lg border border-border bg-muted/40 p-4">
             <div className="mb-3 flex items-center gap-2">
               <PMChip>You</PMChip>
               <span className="text-xs font-semibold uppercase tracking-wider">Your inputs</span>
@@ -1789,7 +1789,7 @@ function DetailScreen({
           )}
           {missingPmInputs.length > 0 && (
             <li className="flex items-start gap-2">
-              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-foreground" />
               Add {missingPmInputs.join(" and ")} above so the priority reflects your context.
             </li>
           )}
@@ -1924,7 +1924,7 @@ function SignalCard({
     <Card
       className={cn(
         "border p-5",
-        source === "ai" ? "border-primary/20" : "border-amber-500/30",
+        source === "ai" ? "border-primary/20" : "border-border",
       )}
     >
       <div className="flex items-center justify-between">
