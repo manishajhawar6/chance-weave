@@ -377,20 +377,20 @@ function UploadScreen({
 }) {
   const [dragging, setDragging] = useState(false);
   return (
-    <div className="mx-auto max-w-5xl px-6 pb-12">
+    <div className="mx-auto max-w-5xl px-6 pb-8">
       {/* 1 — Hero */}
-      <section className="flex min-h-[calc(90vh-57px)] flex-col items-center justify-center py-12 text-center">
+      <section className="flex min-h-[calc(72vh-57px)] flex-col items-center justify-center py-8 text-center">
         <h1 className="text-balance text-[52px] font-semibold leading-[1.02] tracking-tight sm:text-7xl">
           Turn customer conversations
           <br className="hidden sm:block" />{" "}
           into <span className="text-primary">confident</span> product decisions.
         </h1>
-        <p className="mt-6 max-w-xl text-balance text-lg leading-relaxed text-muted-foreground">
+        <p className="mt-5 max-w-xl text-balance text-lg leading-relaxed text-muted-foreground">
           Prism reads scattered customer conversations, surfaces the opportunities inside, and
           hands you the evidence to prioritize with conviction.
         </p>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <Button onClick={onDemo} size="lg" className="h-12 px-6 text-base shadow-elevate-2">
             <Play className="mr-2 h-4 w-4" />
             Run demo
@@ -434,7 +434,7 @@ function UploadScreen({
       </section>
 
       {/* 2 — AI reasoning animation */}
-      <section id="how-it-works" className="scroll-mt-20 border-t border-border/50 py-16">
+      <section id="how-it-works" className="scroll-mt-20 border-t border-border/50 py-10">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             How Prism thinks
@@ -447,13 +447,13 @@ function UploadScreen({
             patterns, and the rationale behind the recommendation.
           </p>
         </div>
-        <div className="mx-auto mt-8 max-w-3xl">
+        <div className="mx-auto mt-6 max-w-3xl">
           <AIReasoningPipeline stage="opportunity" />
         </div>
       </section>
 
       {/* 3 — Workspace preview */}
-      <section id="workspace" className="scroll-mt-20 border-t border-border/50 py-16">
+      <section id="workspace" className="scroll-mt-20 border-t border-border/50 py-10">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             The workspace
@@ -462,13 +462,13 @@ function UploadScreen({
             Opportunities you can defend in a roadmap review.
           </h2>
         </div>
-        <div className="mt-8 overflow-hidden rounded-xl border border-border/60 bg-surface/70 shadow-elevate-2">
+        <div className="mt-6 overflow-hidden rounded-xl border border-border/60 bg-surface/70 shadow-elevate-2">
           <WorkspacePreview />
         </div>
       </section>
 
       {/* 4 — Philosophy */}
-      <section id="philosophy" className="scroll-mt-20 border-t border-border/50 py-16 text-center">
+      <section id="philosophy" className="scroll-mt-20 border-t border-border/50 py-10 text-center">
         <p className="text-balance text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
           <span className="text-primary">AI synthesizes.</span>{" "}
           <span className="text-foreground">You decide.</span>
@@ -480,7 +480,7 @@ function UploadScreen({
       </section>
 
       {/* 5 — Footer */}
-      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border/50 py-8 text-xs text-muted-foreground">
+      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border/50 py-6 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <PrismMark className="h-4 w-4 text-primary" />
           <span className="font-medium text-foreground">Prism</span>
