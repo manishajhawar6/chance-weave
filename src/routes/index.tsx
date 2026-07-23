@@ -752,7 +752,7 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
                 <div className="mt-4 flex items-center gap-2 text-sm italic text-muted-foreground">
                   <Sparkles className="h-4 w-4 animate-pulse text-primary" />
                   <span className="text-shimmer font-medium">
-                    These appear to describe…
+                    Naming the pattern…
                   </span>
                 </div>
               )}
