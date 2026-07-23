@@ -2204,7 +2204,7 @@ function DetailScreen({
   if (!pm?.strategic_importance) missingPmInputs.push("strategic importance");
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
+    <div className="mx-auto max-w-4xl px-6 py-14">
       <Button variant="ghost" size="sm" onClick={onBack} className="mb-4 -ml-2">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to opportunities
