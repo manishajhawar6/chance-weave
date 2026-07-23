@@ -612,28 +612,28 @@ const CLUSTER_DEMO: {
   customers: { id: number; quote: string }[];
 }[] = [
   {
-    name: "Enterprise Identity Management",
+    name: "Enterprise security & user management",
     customers: [
-      { id: 1, quote: "Need enterprise SSO" },
-      { id: 7, quote: "SAML with our IdP" },
+      { id: 1, quote: "Single sign-on with our identity provider" },
+      { id: 7, quote: "Federated login for pilot" },
       { id: 15, quote: "Automated user provisioning" },
-      { id: 31, quote: "Auto-deprovision leavers" },
+      { id: 31, quote: "Auto-remove access when people leave" },
     ],
   },
   {
-    name: "Admin Permission Management",
+    name: "Native integrations with existing tools",
     customers: [
-      { id: 4, quote: "Group-based roles" },
-      { id: 12, quote: "Granular permissions" },
-      { id: 22, quote: "Custom role definitions" },
+      { id: 4, quote: "Clean integration points, not another UI" },
+      { id: 12, quote: "Webhooks for our internal tooling" },
+      { id: 22, quote: "Two-way sync with our project tracker" },
     ],
   },
   {
-    name: "Historical Decision Search",
+    name: "Faster onboarding for new teams",
     customers: [
-      { id: 6, quote: "Can't find past decisions" },
-      { id: 18, quote: "Search misses attachments" },
-      { id: 27, quote: "Need filters and fuzzy match" },
+      { id: 6, quote: "New hires lose a week finding things" },
+      { id: 18, quote: "Empty-state is confusing" },
+      { id: 27, quote: "Templates for common team setups" },
     ],
   },
 ];
