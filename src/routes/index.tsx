@@ -1571,15 +1571,15 @@ function DetailScreen({
         ))}
       </div>
 
-      {/* Section 1 — What customers are telling us */}
+      {/* Section 1 — What customers are saying */}
       <MemoSection
         source="ai"
-        eyebrow="Section 1"
-        title="What customers are telling us"
+        eyebrow="Section 1 · Evidence"
+        title="What customers are saying"
         lede={`${op.evidence_indices.length} customer${op.evidence_indices.length === 1 ? "" : "s"} in the analyzed feedback raised this pattern${representative ? `. One voice captures it:` : "."}`}
       >
         {representative && (
-          <blockquote className="mt-3 border-l-2 border-primary/50 pl-4 text-base italic leading-relaxed text-foreground">
+          <blockquote className="animate-prism-quote mt-3 border-l-2 border-primary/50 pl-4 text-base italic leading-relaxed text-foreground">
             "{representative.text}"
             <div className="mt-1 not-italic text-[11px] uppercase tracking-widest text-muted-foreground">
               Customer #{representative.i + 1} · representative
@@ -1592,8 +1592,12 @@ function DetailScreen({
           </div>
           <ScrollArea className="max-h-[280px] rounded-lg border border-border/60">
             <ul className="divide-y divide-border/60">
-              {evidence.map((e) => (
-                <li key={e.i} className="flex gap-3 px-4 py-2.5">
+              {evidence.map((e, idx) => (
+                <li
+                  key={e.i}
+                  style={{ animationDelay: `${idx * 40}ms` }}
+                  className="animate-prism-merge flex gap-3 px-4 py-2.5"
+                >
                   <span className="mt-0.5 shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                     #{e.i + 1}
                   </span>
@@ -1608,11 +1612,11 @@ function DetailScreen({
         </div>
       </MemoSection>
 
-      {/* Section 2 — Why this matters to the business */}
+      {/* Section 2 — Why this matters */}
       <MemoSection
         source="ai"
-        eyebrow="Section 2"
-        title="Why this matters to the business"
+        eyebrow="Section 2 · Signals"
+        title="Why this matters"
         lede={op.business_impact_rationale}
       >
         <div className="mt-4 flex flex-wrap items-center gap-3">
