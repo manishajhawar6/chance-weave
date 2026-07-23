@@ -39,6 +39,7 @@ import {
   clusterFeedback,
   type ClusterResult,
   type Opportunity,
+  type Theme,
 } from "@/lib/cluster.functions";
 import { DEMO_FEEDBACK } from "@/lib/demo-feedback";
 import { DecisionSummaryDialog } from "@/components/decision-summary";
