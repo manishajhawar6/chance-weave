@@ -1126,6 +1126,71 @@ function AIReasoningPipeline({
   );
 }
 
+// ---------- Loading narrative (5-phase reasoning story) ----------
+// Explicit story shown during processing: Conversations → Pattern detection →
+// Opportunity discovered → Evidence assembled → Workspace opens. Not a decorative
+// spinner — a plain-language explanation of what Prism is doing right now.
+function LoadingNarrative({
+  stage,
+  className,
+}: {
+  stage: "evidence" | "patterns" | "opportunity" | "decision";
+  className?: string;
+}) {
+  const phases = [
+    { label: "Customer conversations", hint: "Reading raw voices" },
+    { label: "Pattern detection", hint: "Grouping recurring signals" },
+    { label: "Opportunity discovered", hint: "Naming the underlying ask" },
+    { label: "Evidence assembled", hint: "Attaching quotes + rationale" },
+    { label: "Workspace opens", hint: "Handing you the decision" },
+  ];
+  const stageToIdx: Record<typeof stage, number> = {
+    evidence: 0,
+    patterns: 1,
+    opportunity: 2,
+    decision: 3,
+  };
+  const activeIdx = Math.min(stageToIdx[stage] + (stage === "opportunity" ? 1 : 0), 3);
+  return (
+    <ol
+      className={cn(
+        "flex flex-wrap items-stretch gap-1.5 text-[11px]",
+        className,
+      )}
+    >
+      {phases.map((p, i) => {
+        const isActive = i === activeIdx;
+        const isPast = i < activeIdx;
+        return (
+          <li
+            key={p.label}
+            className={cn(
+              "flex min-w-0 flex-1 items-center gap-2 rounded-md border px-2.5 py-1.5 transition-all duration-500",
+              isActive && "border-primary/50 bg-primary/[0.05] text-foreground shadow-elevate-1",
+              isPast && "border-primary/20 bg-primary/[0.02] text-foreground/70",
+              !isActive && !isPast && "border-border/50 bg-transparent text-muted-foreground/70",
+            )}
+          >
+            <span
+              className={cn(
+                "grid h-4 w-4 flex-none place-items-center rounded-full text-[9px] font-semibold tabular-nums",
+                isActive || isPast
+                  ? "bg-primary text-primary-foreground"
+                  : "border border-border/60 text-muted-foreground",
+              )}
+            >
+              {isPast ? <Check className="h-2.5 w-2.5" /> : i + 1}
+            </span>
+            <span className="min-w-0 truncate font-medium">{p.label}</span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+
+
 // ---------- AI/PM chips ----------
 
 function AIChip({ children, className }: { children: React.ReactNode; className?: string }) {
