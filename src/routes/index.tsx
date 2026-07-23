@@ -2141,7 +2141,7 @@ function CompareScreen({
           })}
 
           {/* ============ PM INPUTS GROUP ============ */}
-          <CompareGroupHeader tone="pm" label="Your PM inputs — why leadership should care" columns={indices.length} />
+          <CompareGroupHeader tone="pm" label="Your side of the call" columns={indices.length} />
 
           <CompareRowLabel tone="pm">
             <Target className="h-3.5 w-3.5" /> Engineering effort
