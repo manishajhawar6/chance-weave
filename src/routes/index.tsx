@@ -379,7 +379,7 @@ function UploadScreen({
   return (
     <div className="mx-auto max-w-5xl px-6 pb-8">
       {/* 1 — Hero */}
-      <section className="flex min-h-[calc(72vh-57px)] flex-col items-center justify-center py-8 text-center">
+      <section className="flex min-h-[calc(68vh-57px)] flex-col items-center justify-center pt-8 pb-4 text-center">
         <h1 className="text-balance text-[52px] font-semibold leading-[1.02] tracking-tight sm:text-7xl">
           Turn customer conversations
           <br className="hidden sm:block" />{" "}
@@ -434,7 +434,7 @@ function UploadScreen({
       </section>
 
       {/* 2 — AI reasoning animation */}
-      <section id="how-it-works" className="scroll-mt-20 border-t border-border/50 py-10">
+      <section id="how-it-works" className="scroll-mt-20 pt-6 pb-14">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
             How Prism thinks
@@ -447,8 +447,8 @@ function UploadScreen({
             patterns, and the rationale behind the recommendation.
           </p>
         </div>
-        <div className="mx-auto mt-6 max-w-3xl">
-          <AIReasoningPipeline stage="opportunity" />
+        <div className="mx-auto mt-10 max-w-4xl">
+          <SignaturePipeline />
         </div>
       </section>
 
