@@ -1335,6 +1335,250 @@ function OpportunitiesScreen({
   );
 }
 
+function suggestDecision(priority: number, confidence: number): Decision {
+  if (priority >= 70 && confidence >= 60) return "prioritize";
+  if (priority >= 45) return "investigate";
+  if (confidence < 50) return "monitor";
+  return "not_now";
+}
+
+function EditorialExpansion({
+  op,
+  pmi,
+  priority,
+  bd,
+  themes,
+  feedback,
+  onPMChange,
+  onOpen,
+  suggested,
+}: {
+  op: Opportunity;
+  pmi: PMInput;
+  priority: number;
+  bd: { ai: number; strategic: number; effortPenalty: number; total: number };
+  themes: Theme[];
+  feedback: string[];
+  onPMChange: (patch: Partial<PMInput>) => void;
+  onOpen: () => void;
+  suggested: Decision;
+}) {
+  const evidenceIdxs = op.evidence_indices.slice(0, 3);
+  const primaryQuote = feedback[op.representative_quote_index];
+  const otherQuotes = evidenceIdxs
+    .filter((idx) => idx !== op.representative_quote_index)
+    .slice(0, 2)
+    .map((idx) => feedback[idx])
+    .filter(Boolean);
+  const relatedThemes = themes.filter((t) => op.recurring_themes.includes(t.name));
+  const meta = DECISION_META[suggested];
+
+  return (
+    <article className="mx-auto max-w-[68ch] px-2 pb-12 pt-2 pl-[calc(32px+1rem)]">
+      {/* Section rail */}
+      <div className="space-y-10 [&>section]:animate-prism-lift">
+        {/* 1 · Opportunity summary */}
+        <section>
+          <SectionKicker n={1} label="Opportunity" />
+          <p className="mt-3 font-display text-[19px] leading-[1.55] tracking-tight text-foreground/90">
+            {op.problem}
+          </p>
+        </section>
+
+        {/* 2 · Customer quotes */}
+        {primaryQuote && (
+          <section>
+            <SectionKicker n={2} label="In their words" />
+            <figure className="mt-4">
+              <svg
+                aria-hidden
+                viewBox="0 0 32 24"
+                className="h-5 w-5 text-primary/50"
+                fill="currentColor"
+              >
+                <path d="M0 24V14C0 6.3 4.6 1.3 12 0l1.3 4C8.7 5.3 6 8.7 6 13h6v11H0zm20 0V14c0-7.7 4.6-12.7 12-14l1.3 4C28.7 5.3 26 8.7 26 13h6v11H20z" />
+              </svg>
+              <blockquote className="mt-2 font-display text-[22px] leading-[1.4] tracking-tight text-foreground">
+                {primaryQuote.slice(0, 260)}
+                {primaryQuote.length > 260 ? "…" : ""}
+              </blockquote>
+              <figcaption className="mt-3 text-[11px] uppercase tracking-widest text-muted-foreground">
+                Representative voice · 1 of {op.evidence_indices.length}
+              </figcaption>
+            </figure>
+            {otherQuotes.length > 0 && (
+              <div className="mt-6 space-y-4 border-l border-border/60 pl-5">
+                {otherQuotes.map((q, i) => (
+                  <p
+                    key={i}
+                    className="text-[14px] italic leading-relaxed text-muted-foreground"
+                  >
+                    "{q.slice(0, 180)}{q.length > 180 ? "…" : ""}"
+                  </p>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* 3 · AI reasoning memo */}
+        <section>
+          <SectionKicker n={3} label="AI reasoning" ai />
+          <div className="mt-3 rounded-lg border border-border/50 bg-surface-muted/50 p-5">
+            <p className="text-[15px] leading-[1.7] text-foreground/85">
+              Across {op.evidence_indices.length} customer conversations, the model detected a
+              consistent signal around <em className="not-italic font-medium text-foreground">{op.title.toLowerCase()}</em>.
+              Customer demand reads at <span className="font-semibold tabular-nums text-foreground">{Math.round(op.customer_demand)}</span>{" "}
+              and confidence at <span className="font-semibold tabular-nums text-foreground">{Math.round(op.confidence)}%</span>.
+            </p>
+            <p className="mt-3 text-[14px] leading-[1.7] text-muted-foreground">
+              {op.confidence_rationale}
+            </p>
+          </div>
+        </section>
+
+        {/* 4 · Why clustered */}
+        {relatedThemes.length > 0 && (
+          <section>
+            <SectionKicker n={4} label="Why clustered together" />
+            <p className="mt-3 text-[14px] leading-relaxed text-muted-foreground">
+              These conversations were grouped under the same opportunity because they share these
+              recurring themes:
+            </p>
+            <ul className="mt-4 space-y-3">
+              {relatedThemes.map((t) => (
+                <li key={t.name} className="flex gap-3">
+                  <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-primary/70" />
+                  <div>
+                    <div className="text-[14px] font-medium tracking-tight">{t.name}</div>
+                    <div className="text-[13px] leading-relaxed text-muted-foreground">
+                      {t.description}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* 5 · Business impact */}
+        <section>
+          <SectionKicker n={5} label="Business impact" />
+          <div className="mt-3 flex items-center gap-3">
+            <span
+              className={cn(
+                "rounded-full px-3 py-1 text-[12px] font-medium capitalize",
+                IMPACT_TONE[op.business_impact],
+              )}
+            >
+              {op.business_impact}
+            </span>
+            <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              AI-inferred
+            </span>
+          </div>
+          <p className="mt-3 text-[15px] leading-[1.7] text-foreground/85">
+            {op.business_impact_rationale}
+          </p>
+        </section>
+
+        {/* 6 · PM inputs */}
+        <section>
+          <SectionKicker n={6} label="Your inputs" pm />
+          <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+            Add the two things AI can't know — engineering cost and strategic weight. Priority
+            recomputes as you type.
+          </p>
+          <div className="mt-4 rounded-lg border border-border/50 bg-surface p-4">
+            <div className="space-y-3">
+              <Stepper
+                label="Engineering effort"
+                hint="1 low · 10 high"
+                value={pmi.engineering_effort}
+                min={1}
+                max={10}
+                onChange={(v) => onPMChange({ engineering_effort: v })}
+              />
+              <Stepper
+                label="Strategic importance"
+                hint="1–5"
+                value={pmi.strategic_importance}
+                min={1}
+                max={5}
+                onChange={(v) => onPMChange({ strategic_importance: v })}
+              />
+            </div>
+            <div className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-border/40 pt-3 text-[11px] text-muted-foreground">
+              <span>AI {bd.ai}</span>
+              <span>+ Strategic {bd.strategic}</span>
+              <span>− Effort {bd.effortPenalty}</span>
+              <span className="ml-auto text-[13px] font-semibold tabular-nums text-foreground">
+                = {priority}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* 7 · Recommended decision */}
+        <section>
+          <SectionKicker n={7} label="Recommended next step" />
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <span
+              className={cn(
+                "rounded-full px-3 py-1.5 text-[12px] font-semibold",
+                meta.tone,
+              )}
+            >
+              {meta.label}
+            </span>
+            <span className="text-[12px] text-muted-foreground">
+              Based on priority {priority} · confidence {Math.round(op.confidence)}%
+            </span>
+            <Button size="sm" variant="ghost" onClick={onOpen} className="ml-auto">
+              Open full memo →
+            </Button>
+          </div>
+        </section>
+      </div>
+    </article>
+  );
+}
+
+function SectionKicker({
+  n,
+  label,
+  ai,
+  pm,
+}: {
+  n: number;
+  label: string;
+  ai?: boolean;
+  pm?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="grid h-5 w-5 place-items-center rounded-full border border-border/60 text-[10px] font-semibold tabular-nums text-muted-foreground">
+        {n}
+      </span>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+        {label}
+      </span>
+      {ai && (
+        <span className="rounded-sm bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-primary">
+          AI
+        </span>
+      )}
+      {pm && (
+        <span className="rounded-sm border border-border/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
+          You
+        </span>
+      )}
+    </div>
+  );
+}
+
+
+
 function Stepper({
   label,
   hint,
