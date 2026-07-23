@@ -112,6 +112,15 @@ const VENDOR_REPLACEMENTS: [RegExp, string][] = [
   [/Need foldable Android devices\./gi, "Need newer device form factors."],
   [/Need GitHub Actions integration\./gi, "Need CI pipeline integration."],
   [/Jenkins pipeline support is missing\./gi, "Native build pipeline support is missing."],
+  // Fixes for garbled grammar produced by earlier find-and-replace passes
+  [/Need SCIM provisioning for enterprise users\./gi, "Need automated user provisioning for enterprise users."],
+  [/Need automated user provisioning provisioning for enterprise users\./gi, "Need automated user provisioning for enterprise users."],
+  [/More Android versions would help QA\./gi, "Broader OS version coverage would help our QA team."],
+  [/More the devices customers use versions would help QA\./gi, "Broader OS version coverage would help our QA team."],
+  [/Need simultaneous iOS and Android testing\./gi, "Need to test across multiple device types at the same time."],
+  [/Need simultaneous the devices customers use and the devices customers use testing\./gi, "Need to test across multiple device types at the same time."],
+  [/Slack notifications after test runs would help\./gi, "Sending test result notifications into the tools our team already uses would help."],
+  [/the tools their team already uses notifications after test runs would help\./gi, "Sending test result notifications into the tools our team already uses would help."],
   // Identity / auth vendors
   [/\b(?:Okta|Auth0|OneLogin|Ping\s*Identity|Azure\s*AD|Entra\s*ID|Active\s*Directory|JumpCloud)\b/gi, "a supported identity provider"],
   // Collaboration / SaaS brands
