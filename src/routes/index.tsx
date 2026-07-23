@@ -1424,16 +1424,26 @@ function Stepper({
 
 
 
-function MeterCell({ value, tone = "primary" }: { value: number; tone?: "primary" | "muted" }) {
+function MeterCell({
+  value,
+  tone = "primary",
+  compact = false,
+}: {
+  value: number;
+  tone?: "primary" | "muted";
+  compact?: boolean;
+}) {
   return (
     <div>
-      <div className="flex items-center gap-2">
-        <span className="w-8 text-xs font-semibold tabular-nums">{Math.round(value)}</span>
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+      <div className="flex items-center gap-2.5">
+        <span className={cn("tabular-nums font-semibold", compact ? "w-7 text-[13px]" : "w-8 text-xs")}>
+          {Math.round(value)}
+        </span>
+        <div className={cn("flex-1 overflow-hidden rounded-full bg-muted/70", compact ? "h-1 max-w-[60px]" : "h-1.5")}>
           <div
             className={cn(
-              "h-full rounded-full",
-              tone === "primary" ? "bg-primary" : "bg-muted-foreground/50",
+              "h-full rounded-full transition-[width] duration-500",
+              tone === "primary" ? "bg-primary/70" : "bg-muted-foreground/40",
             )}
             style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
           />
