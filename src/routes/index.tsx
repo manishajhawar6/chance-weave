@@ -152,7 +152,7 @@ function Home() {
         await runCluster(rows);
       } catch (err) {
         console.error(err);
-        toast.error(err instanceof Error ? err.message : "Failed to read CSV.");
+        toast.error(err instanceof Error ? err.message : "Couldn't read that CSV.");
       }
     },
     [runCluster],
