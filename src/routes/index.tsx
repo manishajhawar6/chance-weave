@@ -574,8 +574,13 @@ function WorkspacePreview() {
               inView ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
             )}
           >
-            <div className="text-[15px] font-medium tracking-tight transition-colors group-hover:text-primary">
-              {r.title}
+            <div className="min-w-0">
+              <div className="text-[15px] font-medium tracking-tight transition-colors group-hover:text-primary">
+                {r.title}
+              </div>
+              <div className="mt-1 text-[11px] text-muted-foreground">
+                Supported by {r.evidence} conversations
+              </div>
             </div>
             <MeterCell value={r.demand} />
             <div>
@@ -612,28 +617,28 @@ const CLUSTER_DEMO: {
   customers: { id: number; quote: string }[];
 }[] = [
   {
-    name: "Enterprise security & user management",
+    name: "Enterprise security & governance gaps",
     customers: [
-      { id: 1, quote: "Single sign-on with our identity provider" },
-      { id: 7, quote: "Federated login for pilot" },
-      { id: 15, quote: "Automated user provisioning" },
-      { id: 31, quote: "Auto-remove access when people leave" },
+      { id: 1, quote: "Stuck in pilot until logins tie to our identity provider" },
+      { id: 7, quote: "Hard to justify a broader rollout right now" },
+      { id: 15, quote: "Adding four hundred people by hand isn't realistic" },
+      { id: 31, quote: "Access doesn't disappear when people leave" },
     ],
   },
   {
-    name: "Native integrations with existing tools",
+    name: "Fragmented workflows across existing tools",
     customers: [
-      { id: 4, quote: "Clean integration points, not another UI" },
-      { id: 12, quote: "Webhooks for our internal tooling" },
-      { id: 22, quote: "Two-way sync with our project tracker" },
+      { id: 4, quote: "Every team has built its own workaround" },
+      { id: 12, quote: "We need clean integration points, not another UI" },
+      { id: 22, quote: "Handoffs still fall through the cracks" },
     ],
   },
   {
-    name: "Faster onboarding for new teams",
+    name: "Slow team onboarding",
     customers: [
-      { id: 6, quote: "New hires lose a week finding things" },
-      { id: 18, quote: "Empty-state is confusing" },
-      { id: 27, quote: "Templates for common team setups" },
+      { id: 6, quote: "Onboarding is still mostly manual" },
+      { id: 18, quote: "New hires lose a week finding things" },
+      { id: 27, quote: "We keep re-teaching the same setup steps" },
     ],
   },
 ];
@@ -679,11 +684,11 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
         Reading customer conversations
       </p>
       <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">
-        <span className="text-shimmer">Grouping problems into opportunities</span>
+        <span className="text-shimmer">Grouping conversations into opportunity areas</span>
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        {feedback.length} conversations in. Prism surfaces individual voices, groups the recurring
-        ones, and names the pattern underneath. You take it from there.
+        Reading {feedback.length} customer conversations. Prism surfaces individual voices, groups
+        the recurring ones, and names the underlying problem. You take it from there.
       </p>
 
       <AIReasoningPipeline stage={pipelineStage} className="mt-8" />
@@ -1485,8 +1490,9 @@ function OpportunitiesScreen({
             What opportunities are emerging?
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-            {result.opportunities.length} opportunities emerged from {result.feedback.length}{" "}
-            conversations. Open a row to read the evidence and score your side of the call.
+            AI analyzed {result.feedback.length} customer conversations and identified{" "}
+            {result.opportunities.length} recurring opportunity areas. Open a row to read the
+            evidence and add your side of the call — AI recommends, you decide.
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={onReset}>
@@ -1518,7 +1524,7 @@ function OpportunitiesScreen({
           <div>Opportunity</div>
           <div>Demand</div>
           <div>Impact</div>
-          <div className="text-right">Priority</div>
+          <div className="text-right">Recommended priority</div>
           <div />
         </div>
         {rows.map(({ op, i, priority }) => {
@@ -1572,6 +1578,9 @@ function OpportunitiesScreen({
                   <div className="mt-1 line-clamp-2 max-w-[52ch] text-[13px] leading-relaxed text-muted-foreground">
                     {op.problem}
                   </div>
+                  <div className="mt-1.5 text-[11px] text-muted-foreground/85">
+                    Supported by {op.evidence_indices.length} conversations
+                  </div>
                 </div>
                 <MeterCell value={op.customer_demand} compact />
                 <div>
@@ -1580,7 +1589,7 @@ function OpportunitiesScreen({
                   </span>
                 </div>
                 <div className="text-right text-[32px] font-bold leading-none tracking-tight tabular-nums">
-                  {priority}
+                  <AnimatedNumber value={priority} />
                 </div>
                 <div
                   aria-hidden
@@ -1618,7 +1627,8 @@ function OpportunitiesScreen({
       </div>
 
       <p className="mt-6 max-w-2xl text-[12px] text-muted-foreground">
-        Priority = AI customer signal + your strategic weight − your engineering cost.
+        Recommended priority reflects customer demand and supporting evidence (AI) balanced against
+        your strategic importance and engineering effort (you). AI recommends — you decide.
       </p>
 
       <div className="sticky bottom-6 mt-10 flex justify-center">
@@ -1786,8 +1796,9 @@ function EditorialExpansion({
         <section>
           <SectionKicker n={6} label="Your inputs" pm />
           <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
-            Add the two things AI can't know — engineering cost and strategic weight. Priority
-            recomputes as you type.
+            Recommended priority weighs four factors: customer demand and supporting evidence (from
+            AI), and strategic importance and engineering effort (from you). Adjust either input
+            below — the recommendation recomputes live.
           </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
             <div className="rounded-lg border border-border/50 bg-surface p-4">
@@ -1837,7 +1848,7 @@ function EditorialExpansion({
               {meta.label}
             </span>
             <span className="text-[12px] text-muted-foreground">
-              Based on priority {priority} · confidence {Math.round(op.confidence)}%
+              A suggestion, not a verdict · priority {priority} · confidence {Math.round(op.confidence)}%
             </span>
             <Button size="sm" variant="ghost" onClick={onOpen} className="ml-auto">
               Open full memo →
@@ -2552,9 +2563,9 @@ function DetailScreen({
       {/* Section 4 — Priority (blend of AI + PM inputs) */}
       <MemoSection
         source="mixed"
-        eyebrow="Section 4 · Priority"
-        title="What's driving this"
-        lede="Priority is the sum of AI-observed customer signal and your own effort and strategic weight — not one opaque number."
+        eyebrow="Section 4 · Recommended priority"
+        title="How this recommendation is built"
+        lede="Recommended priority weighs four factors — customer demand and supporting evidence from AI, and strategic importance and engineering effort from you. It's a recommendation, never a verdict."
       >
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <div className="rounded-lg border border-border bg-muted/40 p-4">
