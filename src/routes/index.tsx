@@ -1409,7 +1409,7 @@ function OpportunitiesScreen({
                     {op.business_impact}
                   </span>
                 </div>
-                <div className="text-right text-[28px] font-semibold leading-none tracking-tight tabular-nums">
+                <div className="text-right text-[32px] font-bold leading-none tracking-tight tabular-nums">
                   {priority}
                 </div>
                 <div
