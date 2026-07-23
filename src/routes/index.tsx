@@ -1648,10 +1648,65 @@ function DetailScreen({
         </div>
       </MemoSection>
 
-      {/* Section 3 — What's driving this recommendation */}
+      {/* Section 3 — AI reasoning */}
+      <MemoSection
+        source="ai"
+        eyebrow="Section 3 · AI reasoning"
+        title="How AI reached this pattern"
+        lede={op.confidence_rationale}
+      >
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-4">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+              Signal strength
+            </div>
+            <div className="mt-2 text-2xl font-semibold tabular-nums">
+              {Math.round(op.customer_demand)}
+              <span className="text-sm font-normal text-muted-foreground"> / 100</span>
+            </div>
+            <div className="mt-1 text-[11px] text-muted-foreground">
+              Composite of mention count and expressed intensity.
+            </div>
+          </div>
+          <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-4">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+              Confidence
+            </div>
+            <div className="mt-2 text-2xl font-semibold tabular-nums">
+              {Math.round(op.confidence)}
+              <span className="text-sm font-normal text-muted-foreground"> / 100</span>
+            </div>
+            <div className="mt-1 text-[11px] text-muted-foreground">
+              {confidenceTier} — based on sample size and consistency.
+            </div>
+          </div>
+          <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-4">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+              Recurring themes
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1">
+              {op.recurring_themes.length ? (
+                op.recurring_themes.map((t) => (
+                  <span key={t} className="rounded bg-primary/10 px-1.5 py-0.5 text-[11px] text-primary">
+                    {t}
+                  </span>
+                ))
+              ) : (
+                <span className="text-[11px] text-muted-foreground">None linked</span>
+              )}
+            </div>
+          </div>
+        </div>
+        <p className="mt-4 flex items-center gap-2 text-[11px] italic text-muted-foreground">
+          <Bot className="h-3 w-3 shrink-0 text-primary" />
+          AI synthesizes what the evidence shows. It doesn't tell you what to do next.
+        </p>
+      </MemoSection>
+
+      {/* Section 4 — Priority (blend of AI + PM inputs) */}
       <MemoSection
         source="mixed"
-        eyebrow="Section 3"
+        eyebrow="Section 4 · Priority"
         title="What's driving this recommendation"
         lede="Priority emerges from AI-observed customer signal combined with your effort and strategic scoring — not a single opaque number."
       >
