@@ -1196,10 +1196,16 @@ function OpportunitiesScreen({
       </div>
 
       {result.themes.length > 0 && (
-        <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
-          <span className="uppercase tracking-widest">Themes</span>
+        <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Themes
+          </span>
           {result.themes.map((t) => (
-            <span key={t.name} className="text-foreground/80" title={t.description}>
+            <span
+              key={t.name}
+              title={t.description}
+              className="rounded-full border border-border/50 bg-surface/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+            >
               {t.name}
             </span>
           ))}
@@ -1207,7 +1213,7 @@ function OpportunitiesScreen({
       )}
 
       <div className="mt-12">
-        <div className={cn("grid items-center gap-4 border-b border-border/60 pb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground", cols)}>
+        <div className={cn("grid items-center gap-4 border-b border-border/50 pb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground", cols)}>
           <div />
           <div>Opportunity</div>
           <div>Demand</div>
@@ -1222,46 +1228,78 @@ function OpportunitiesScreen({
           const quote = result.feedback[op.representative_quote_index];
           const isOpen = expanded.has(i);
           return (
-            <div key={i} className="border-b border-border/40">
-              <div className={cn("grid items-center gap-4 py-5", cols, selected.has(i) && "bg-primary/[0.03]")}>
-                <Checkbox
-                  checked={selected.has(i)}
-                  onCheckedChange={() => toggleSelect(i)}
-                  aria-label={`Select ${op.title}`}
-                />
-                <button onClick={() => onOpen(i)} className="text-left">
+            <div key={i} className="border-b border-border/30 last:border-b-0">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => toggleExpand(i)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleExpand(i);
+                  }
+                }}
+                className={cn(
+                  "group grid cursor-pointer items-center gap-4 py-6 transition-colors",
+                  cols,
+                  selected.has(i) ? "bg-primary/[0.035]" : "hover:bg-muted/25",
+                )}
+              >
+                <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                  <Checkbox
+                    checked={selected.has(i)}
+                    onCheckedChange={() => toggleSelect(i)}
+                    aria-label={`Select ${op.title}`}
+                  />
+                </div>
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[15px] font-medium hover:underline">{op.title}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpen(i);
+                      }}
+                      className="text-left text-[15px] font-medium leading-snug tracking-tight hover:text-primary"
+                    >
+                      {op.title}
+                    </button>
                     {decision && (
                       <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", DECISION_META[decision].tone)}>
                         {DECISION_META[decision].label}
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 line-clamp-1 text-[13px] text-muted-foreground">
+                  <div className="mt-1 line-clamp-2 max-w-[52ch] text-[13px] leading-relaxed text-muted-foreground">
                     {op.problem}
                   </div>
-                </button>
-                <MeterCell value={op.customer_demand} />
+                </div>
+                <MeterCell value={op.customer_demand} compact />
                 <div>
                   <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium capitalize", IMPACT_TONE[op.business_impact])}>
                     {op.business_impact}
                   </span>
                 </div>
-                <div className="text-right text-2xl font-semibold tabular-nums">{priority}</div>
-                <button
-                  onClick={() => toggleExpand(i)}
-                  aria-label={isOpen ? "Collapse" : "Expand"}
-                  className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                <div className="text-right text-[28px] font-semibold leading-none tracking-tight tabular-nums">
+                  {priority}
+                </div>
+                <div
+                  aria-hidden
+                  className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground/70 transition-colors group-hover:bg-muted group-hover:text-foreground"
                 >
-                  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden className={cn("transition-transform", isOpen && "rotate-180")}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" className={cn("transition-transform duration-300", isOpen && "rotate-180")}>
                     <path d="M2 4 L6 8 L10 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                </button>
+                </div>
               </div>
 
-              {isOpen && (
-                <div className="animate-prism-lift grid gap-8 pb-8 pl-[calc(32px+1rem)] pr-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+              <div
+                className={cn(
+                  "grid overflow-hidden transition-[grid-template-rows,opacity] duration-300 ease-out",
+                  isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                )}
+              >
+                <div className="min-h-0">
+                  <div className="grid gap-8 pb-8 pl-[calc(32px+1rem)] pr-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
                   <div>
                     <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       Evidence · {op.evidence_indices.length} quote{op.evidence_indices.length === 1 ? "" : "s"}
@@ -1307,8 +1345,9 @@ function OpportunitiesScreen({
                       <span className="font-semibold text-foreground">= {priority}</span>
                     </div>
                   </div>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
