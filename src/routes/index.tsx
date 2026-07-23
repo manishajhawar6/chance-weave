@@ -2075,7 +2075,7 @@ function CompareScreen({
           })}
 
           {/* ============ AI SIGNALS GROUP ============ */}
-          <CompareGroupHeader tone="ai" label="AI-inferred from customer feedback" columns={indices.length} />
+          <CompareGroupHeader tone="ai" label="Read from customer conversations" columns={indices.length} />
 
           <CompareRowLabel tone="ai">
             <Users className="h-3.5 w-3.5" /> Customer demand
