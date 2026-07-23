@@ -428,12 +428,12 @@ function UploadScreen({
 
       {/* 1 — Hero */}
       <section className="flex min-h-[calc(68vh-57px)] flex-col items-center justify-center pt-8 pb-4 text-center">
-        <h1 className="text-balance text-[52px] font-semibold leading-[1.02] tracking-tight sm:text-7xl">
+        <h1 className="text-balance text-[57px] font-semibold leading-[1.02] tracking-tight sm:text-[78px]">
           Turn customer conversations
           <br className="hidden sm:block" />{" "}
           into <span className="text-primary">confident</span> product decisions.
         </h1>
-        <p className="mt-5 max-w-xl text-balance text-lg leading-relaxed text-muted-foreground">
+        <p className="mt-5 max-w-xl text-balance text-[19px] leading-relaxed text-muted-foreground">
           Prism reads scattered customer conversations, surfaces the opportunities inside, and
           hands you the evidence to prioritize with conviction.
         </p>
@@ -510,9 +510,8 @@ function UploadScreen({
             Opportunities you can defend in a roadmap review.
           </h2>
         </div>
-        <div className="mt-8 overflow-hidden rounded-2xl border border-border/50 bg-surface shadow-elevate-3 ring-1 ring-black/[0.02]">
-          <WorkspacePreview />
-        </div>
+        <WorkspacePreview />
+
       </section>
 
       {/* 4 — Philosophy */}
@@ -542,45 +541,59 @@ function UploadScreen({
 
 // A static, non-interactive snapshot of what the workspace looks like after analysis.
 function WorkspacePreview() {
+  const { ref, inView } = useInView<HTMLDivElement>(0.15);
   const rows = [
     { title: "Enterprise readiness", demand: 92, impact: "critical" as const, priority: 87 },
     { title: "Mobile reliability", demand: 74, impact: "high" as const, priority: 62 },
     { title: "Search improvements", demand: 51, impact: "medium" as const, priority: 38 },
   ];
   return (
-    <div className="text-[15px]">
-      <div className="grid grid-cols-[minmax(0,2fr)_170px_130px_110px] items-center gap-5 border-b border-border/40 bg-muted/25 px-8 py-4 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-        <div>Opportunity</div>
-        <div>Demand</div>
-        <div>Impact</div>
-        <div className="text-right">Priority</div>
-      </div>
-      {rows.map((r, i) => (
-        <div
-          key={r.title}
-          className={cn(
-            "grid grid-cols-[minmax(0,2fr)_170px_130px_110px] items-center gap-5 px-8 py-6 transition-colors",
-            i < rows.length - 1 && "border-b border-border/30",
-            "hover:bg-muted/20",
-          )}
-        >
-          <div className="text-[15px] font-medium tracking-tight">{r.title}</div>
-          <MeterCell value={r.demand} />
-          <div>
-            <span
-              className={cn(
-                "rounded-full px-2.5 py-1 text-[11px] font-medium capitalize",
-                IMPACT_TONE[r.impact],
-              )}
-            >
-              {r.impact}
-            </span>
-          </div>
-          <div className="text-right text-[22px] font-semibold tabular-nums leading-none">
-            {r.priority}
-          </div>
+    <div
+      ref={ref}
+      className={cn(
+        "mt-8 overflow-hidden rounded-2xl border border-border/50 bg-surface ring-1 ring-black/[0.02] transition-all duration-700 ease-out",
+        inView
+          ? "translate-y-0 opacity-100 shadow-elevate-3"
+          : "translate-y-3 opacity-0 shadow-elevate-2",
+      )}
+    >
+      <div className="text-[15px]">
+        <div className="grid grid-cols-[minmax(0,2fr)_170px_130px_110px] items-center gap-5 border-b border-border/40 bg-muted/25 px-8 py-4 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <div>Opportunity</div>
+          <div>Demand</div>
+          <div>Impact</div>
+          <div className="text-right">Priority</div>
         </div>
-      ))}
+        {rows.map((r, i) => (
+          <div
+            key={r.title}
+            style={{ transitionDelay: inView ? `${180 + i * 90}ms` : "0ms" }}
+            className={cn(
+              "group grid cursor-pointer grid-cols-[minmax(0,2fr)_170px_130px_110px] items-center gap-5 px-8 py-6 transition-all duration-500 ease-out hover:bg-primary/[0.04]",
+              i < rows.length - 1 && "border-b border-border/30",
+              inView ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
+            )}
+          >
+            <div className="text-[15px] font-medium tracking-tight transition-colors group-hover:text-primary">
+              {r.title}
+            </div>
+            <MeterCell value={r.demand} />
+            <div>
+              <span
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-[11px] font-medium capitalize",
+                  IMPACT_TONE[r.impact],
+                )}
+              >
+                {r.impact}
+              </span>
+            </div>
+            <div className="text-right text-[24px] font-bold tabular-nums leading-none tracking-tight">
+              {r.priority}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -800,7 +813,7 @@ function SignaturePipeline() {
       key: "evidence",
       label: "Evidence",
       sub: "Customer voices, verbatim",
-      caption: "Raw conversations, tickets, and interviews land here as source material.",
+      caption: "Conversations, tickets, interviews.",
       icon: Quote,
       owner: "ai" as const,
     },
@@ -808,7 +821,7 @@ function SignaturePipeline() {
       key: "patterns",
       label: "Patterns",
       sub: "Recurring signals",
-      caption: "AI groups related voices into themes and names each cluster.",
+      caption: "Related voices grouped and named.",
       icon: Layers,
       owner: "ai" as const,
     },
@@ -816,8 +829,7 @@ function SignaturePipeline() {
       key: "opportunity",
       label: "Opportunity",
       sub: "With rationale",
-      caption:
-        "The aha moment — a defensible product opportunity with evidence, demand, and confidence.",
+      caption: "A defensible product bet, with evidence.",
       icon: Sparkles,
       owner: "ai" as const,
       hero: true,
@@ -826,7 +838,7 @@ function SignaturePipeline() {
       key: "decision",
       label: "Human decision",
       sub: "PM owns the call",
-      caption: "You weigh effort, strategy, and revenue — Prism steps back.",
+      caption: "You weigh effort, strategy, revenue.",
       icon: UserIcon,
       owner: "pm" as const,
     },
@@ -1397,7 +1409,7 @@ function OpportunitiesScreen({
                     {op.business_impact}
                   </span>
                 </div>
-                <div className="text-right text-[28px] font-semibold leading-none tracking-tight tabular-nums">
+                <div className="text-right text-[32px] font-bold leading-none tracking-tight tabular-nums">
                   {priority}
                 </div>
                 <div
