@@ -543,9 +543,9 @@ function UploadScreen({
 function WorkspacePreview() {
   const { ref, inView } = useInView<HTMLDivElement>(0.15);
   const rows = [
-    { title: "Enterprise readiness", demand: 92, impact: "critical" as const, priority: 87 },
-    { title: "Mobile reliability", demand: 74, impact: "high" as const, priority: 62 },
-    { title: "Search improvements", demand: 51, impact: "medium" as const, priority: 38 },
+    { title: "Enterprise identity management", demand: 92, impact: "critical" as const, priority: 87 },
+    { title: "Admin permission management", demand: 74, impact: "high" as const, priority: 62 },
+    { title: "Historical decision search", demand: 51, impact: "medium" as const, priority: 38 },
   ];
   return (
     <div
@@ -612,28 +612,28 @@ const CLUSTER_DEMO: {
   customers: { id: number; quote: string }[];
 }[] = [
   {
-    name: "Enterprise Readiness",
+    name: "Enterprise Identity Management",
     customers: [
-      { id: 1, quote: "Need SSO" },
-      { id: 7, quote: "Need Okta" },
-      { id: 15, quote: "Need SCIM" },
-      { id: 31, quote: "Need SOC 2" },
+      { id: 1, quote: "Need enterprise SSO" },
+      { id: 7, quote: "SAML with our IdP" },
+      { id: 15, quote: "Automated user provisioning" },
+      { id: 31, quote: "Auto-deprovision leavers" },
     ],
   },
   {
-    name: "Mobile Reliability",
+    name: "Admin Permission Management",
     customers: [
-      { id: 4, quote: "iOS keeps crashing" },
-      { id: 12, quote: "Android is way behind" },
-      { id: 22, quote: "Push notifications never arrive" },
+      { id: 4, quote: "Group-based roles" },
+      { id: 12, quote: "Granular permissions" },
+      { id: 22, quote: "Custom role definitions" },
     ],
   },
   {
-    name: "Search Improvements",
+    name: "Historical Decision Search",
     customers: [
-      { id: 6, quote: "Search misses PDFs" },
-      { id: 18, quote: "No fuzzy match for typos" },
-      { id: 27, quote: "Need better filters" },
+      { id: 6, quote: "Can't find past decisions" },
+      { id: 18, quote: "Search misses attachments" },
+      { id: 27, quote: "Need filters and fuzzy match" },
     ],
   },
 ];
@@ -1253,6 +1253,176 @@ function priorityScore(op: Opportunity, pm?: PMInput) {
   return priorityBreakdown(op, pm).total;
 }
 
+// Tween a displayed number toward its target so PM input changes feel physical.
+function useAnimatedNumber(value: number, duration = 380) {
+  const [display, setDisplay] = useState(value);
+  const from = useRef(value);
+  const start = useRef<number | null>(null);
+  const raf = useRef<number | null>(null);
+  useEffect(() => {
+    from.current = display;
+    start.current = null;
+    if (raf.current) cancelAnimationFrame(raf.current);
+    const target = value;
+    const step = (ts: number) => {
+      if (start.current === null) start.current = ts;
+      const t = Math.min(1, (ts - start.current) / duration);
+      // easeOutCubic
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(from.current + (target - from.current) * eased));
+      if (t < 1) raf.current = requestAnimationFrame(step);
+    };
+    raf.current = requestAnimationFrame(step);
+    return () => {
+      if (raf.current) cancelAnimationFrame(raf.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  return display;
+}
+
+function AnimatedNumber({
+  value,
+  className,
+}: {
+  value: number;
+  className?: string;
+}) {
+  const shown = useAnimatedNumber(value);
+  return <span className={cn("tabular-nums", className)}>{shown}</span>;
+}
+
+// Vertical ladder that shows how AI signal + PM inputs assemble into the
+// final priority. Rungs pulse and rebuild whenever a PM input changes so the
+// PM can *feel* their judgment moving the number.
+function PriorityLadder({
+  ai,
+  strategic,
+  effortPenalty,
+  total,
+  hasStrategic,
+  hasEffort,
+  emphasize = false,
+}: {
+  ai: number;
+  strategic: number;
+  effortPenalty: number;
+  total: number;
+  hasStrategic: boolean;
+  hasEffort: boolean;
+  emphasize?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border bg-card p-4",
+        emphasize
+          ? "border-primary/40 bg-gradient-to-br from-primary/[0.06] via-primary/[0.02] to-transparent"
+          : "border-border/60",
+      )}
+    >
+      <LadderRung
+        kind="ai"
+        label="AI customer signal"
+        sublabel="Demand · confidence · impact"
+        value={ai}
+        sign="+"
+      />
+      <LadderConnector />
+      <LadderRung
+        kind="pm"
+        label="Strategic importance"
+        sublabel={hasStrategic ? "Your input" : "Awaiting your input"}
+        value={strategic}
+        sign="+"
+        muted={!hasStrategic}
+      />
+      <LadderConnector />
+      <LadderRung
+        kind="pm"
+        label="Engineering effort"
+        sublabel={hasEffort ? "Your input" : "Awaiting your input"}
+        value={effortPenalty}
+        sign="−"
+        muted={!hasEffort}
+      />
+      <div className="mt-3 border-t border-border/60 pt-3">
+        <div className="flex items-baseline justify-between gap-3">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary">
+              Final priority
+            </div>
+            <div className="text-[11px] text-muted-foreground">
+              Recomputes as you adjust inputs
+            </div>
+          </div>
+          <AnimatedNumber
+            key={total}
+            value={total}
+            className="animate-prism-lift text-[38px] font-semibold leading-none tracking-tight text-primary"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function LadderRung({
+  kind,
+  label,
+  sublabel,
+  value,
+  sign,
+  muted = false,
+}: {
+  kind: "ai" | "pm";
+  label: string;
+  sublabel: string;
+  value: number;
+  sign: "+" | "−";
+  muted?: boolean;
+}) {
+  const shown = useAnimatedNumber(value);
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 py-1.5 transition-opacity",
+        muted && "opacity-55",
+      )}
+    >
+      <span
+        className={cn(
+          "rounded-sm px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest",
+          kind === "ai"
+            ? "bg-primary/10 text-primary"
+            : "border border-border/60 text-muted-foreground",
+        )}
+      >
+        {kind === "ai" ? "AI" : "You"}
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[13px] font-medium">{label}</div>
+        <div className="truncate text-[11px] text-muted-foreground">{sublabel}</div>
+      </div>
+      <div
+        className={cn(
+          "font-mono text-[15px] tabular-nums",
+          sign === "−" ? "text-foreground/80" : "text-foreground",
+        )}
+      >
+        <span className="mr-0.5 text-muted-foreground">{sign}</span>
+        {shown}
+      </div>
+    </div>
+  );
+}
+
+function LadderConnector() {
+  return (
+    <div className="ml-[9px] h-2.5 w-px bg-gradient-to-b from-border/80 to-border/30" />
+  );
+}
+
 // ---------- Screen 3: Opportunities ----------
 
 function OpportunitiesScreen({
@@ -1619,33 +1789,38 @@ function EditorialExpansion({
             Add the two things AI can't know — engineering cost and strategic weight. Priority
             recomputes as you type.
           </p>
-          <div className="mt-4 rounded-lg border border-border/50 bg-surface p-4">
-            <div className="space-y-3">
-              <Stepper
-                label="Engineering effort"
-                hint="1 low · 10 high"
-                value={pmi.engineering_effort}
-                min={1}
-                max={10}
-                onChange={(v) => onPMChange({ engineering_effort: v })}
-              />
-              <Stepper
-                label="Strategic importance"
-                hint="1–5"
-                value={pmi.strategic_importance}
-                min={1}
-                max={5}
-                onChange={(v) => onPMChange({ strategic_importance: v })}
-              />
+          <div className="mt-4 grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+            <div className="rounded-lg border border-border/50 bg-surface p-4">
+              <div className="space-y-3">
+                <Stepper
+                  label="Engineering effort"
+                  hint="1 low · 10 high"
+                  value={pmi.engineering_effort}
+                  min={1}
+                  max={10}
+                  onChange={(v) => onPMChange({ engineering_effort: v })}
+                />
+                <Stepper
+                  label="Strategic importance"
+                  hint="1–5"
+                  value={pmi.strategic_importance}
+                  min={1}
+                  max={5}
+                  onChange={(v) => onPMChange({ strategic_importance: v })}
+                />
+              </div>
+              <p className="mt-3 text-[11px] italic text-muted-foreground">
+                Adjust either input — watch the ladder rebuild.
+              </p>
             </div>
-            <div className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-border/40 pt-3 text-[11px] text-muted-foreground">
-              <span>AI {bd.ai}</span>
-              <span>+ Strategic {bd.strategic}</span>
-              <span>− Effort {bd.effortPenalty}</span>
-              <span className="ml-auto text-[13px] font-semibold tabular-nums text-foreground">
-                = {priority}
-              </span>
-            </div>
+            <PriorityLadder
+              ai={bd.ai}
+              strategic={bd.strategic}
+              effortPenalty={bd.effortPenalty}
+              total={priority}
+              hasStrategic={!!pmi.strategic_importance}
+              hasEffort={!!pmi.engineering_effort}
+            />
           </div>
         </section>
 
@@ -2407,33 +2582,22 @@ function DetailScreen({
                   max={5}
                   placeholder="Alignment with company strategy"
                 />
-              </div>
             </div>
+            </div>
+            <p className="mt-3 text-[11px] italic text-muted-foreground">
+              Change either input and the ladder on the right rebuilds.
+            </p>
           </div>
 
-          <div className="rounded-lg border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-                Priority recommendation
-              </span>
-            </div>
-            <div className="text-4xl font-semibold tabular-nums">{bd.total}</div>
-            <div className="mt-3 space-y-1 text-xs">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">AI customer signal</span>
-                <span className="font-mono">+{bd.ai}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Your strategic boost</span>
-                <span className="font-mono">+{bd.strategic}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Effort penalty</span>
-                <span className="font-mono">−{bd.effortPenalty}</span>
-              </div>
-            </div>
-          </div>
+          <PriorityLadder
+            ai={bd.ai}
+            strategic={bd.strategic}
+            effortPenalty={bd.effortPenalty}
+            total={bd.total}
+            hasStrategic={!!pm?.strategic_importance}
+            hasEffort={!!pm?.engineering_effort}
+            emphasize
+          />
         </div>
       </MemoSection>
 
