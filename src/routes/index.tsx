@@ -20,10 +20,8 @@ import {
   Search,
   Eye,
   Pause,
-  Lock,
   Play,
-  Compass,
-  FileText,
+
 } from "lucide-react";
 import { toast, Toaster } from "sonner";
 
