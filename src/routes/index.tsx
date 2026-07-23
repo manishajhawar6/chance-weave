@@ -543,9 +543,9 @@ function UploadScreen({
 function WorkspacePreview() {
   const { ref, inView } = useInView<HTMLDivElement>(0.15);
   const rows = [
-    { title: "Enterprise readiness", demand: 92, impact: "critical" as const, priority: 87 },
-    { title: "Mobile reliability", demand: 74, impact: "high" as const, priority: 62 },
-    { title: "Search improvements", demand: 51, impact: "medium" as const, priority: 38 },
+    { title: "Enterprise identity management", demand: 92, impact: "critical" as const, priority: 87 },
+    { title: "Admin permission management", demand: 74, impact: "high" as const, priority: 62 },
+    { title: "Historical decision search", demand: 51, impact: "medium" as const, priority: 38 },
   ];
   return (
     <div
