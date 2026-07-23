@@ -675,6 +675,8 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
 
       <AIReasoningPipeline stage={pipelineStage} className="mt-8" />
 
+      <LoadingNarrative stage={pipelineStage} className="mt-6" />
+
       <div className="mt-10 space-y-6">
         {CLUSTER_DEMO.map((group, gi) => {
           const { state, shown } = stageAt(gi, tick);
