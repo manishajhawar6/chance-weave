@@ -110,7 +110,7 @@ function Home() {
         setScreen({ kind: "opportunities", result });
       } catch (err) {
         console.error(err);
-        toast.error(err instanceof Error ? err.message : "AI analysis failed.");
+        toast.error(err instanceof Error ? err.message : "Something went wrong. Try again.");
         setScreen({ kind: "upload" });
       }
     },
