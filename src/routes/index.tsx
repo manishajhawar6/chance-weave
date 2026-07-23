@@ -1618,13 +1618,13 @@ function OpportunitiesScreen({
       </div>
 
       <p className="mt-6 max-w-2xl text-[12px] text-muted-foreground">
-        Priority = AI-inferred customer signal + your strategic importance − your engineering effort.
+        Priority = AI customer signal + your strategic weight − your engineering cost.
       </p>
 
       <div className="sticky bottom-6 mt-10 flex justify-center">
         <div className={cn("flex items-center gap-3 rounded-full border border-border bg-card/95 px-4 py-2 shadow-elevate-2 backdrop-blur transition-opacity", selected.size === 0 && "opacity-60")}>
           <span className="text-xs text-muted-foreground">
-            {selected.size === 0 ? "Select opportunities to compare" : `${selected.size} selected`}
+            {selected.size === 0 ? "Select two or more to compare" : `${selected.size} selected`}
           </span>
           <Button size="sm" disabled={selected.size < 2} onClick={() => onCompare([...selected].sort((a, b) => a - b))}>
             Compare
