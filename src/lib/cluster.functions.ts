@@ -47,20 +47,20 @@ export const clusterFeedback = createServerFn({ method: "POST" })
       .map((f, i) => `[${i}] ${f.replace(/\s+/g, " ").slice(0, 500)}`)
       .join("\n");
 
-    const prompt = `You are an AI research assistant helping a product manager turn raw customer feedback into defensible product opportunities.
+    const prompt = `You are an AI research assistant helping a product manager turn raw customer conversations into defensible product opportunities.
 
 First, identify 3-8 recurring themes across the entire dataset (short name + 1-sentence description).
 
-Then extract 3-8 distinct product OPPORTUNITIES. Frame each opportunity as a business problem the product could solve, not as a feature request. Prefer titles like "Enterprise security & user management" or "Faster onboarding for new teams" over "Add SSO" or "Build an onboarding wizard".
+Then extract 3-8 distinct product OPPORTUNITIES. Frame each opportunity as a customer problem the product could solve — never as a feature request or solution. Prefer titles like "Enterprise security & governance gaps", "Fragmented workflows across existing tools", or "Slow team onboarding" over "Add SSO", "Build integrations", or "Onboarding wizard".
 
 For each opportunity provide:
-- title: 3-8 words, business-problem framing, no vendor or technology names
-- problem: 1-2 sentences explaining what customers are struggling with and why it matters to their business
-- customer_demand: 0-100, weighted by how many items support this and how strongly they express it
+- title: 3-8 words, problem framing, no vendor or technology names
+- problem: 2-3 sentences. Explain what customers are struggling with, the recurring behaviour behind the grouping (what customers keep doing or working around), and why this represents a business problem worth solving. Read like a paragraph in an analyst memo — not a summary sentence.
+- customer_demand: 0-100, weighted by how many conversations support this and how strongly they express it
 - business_impact: low | medium | high | critical — how much this affects customers' ability to succeed with the product
 - business_impact_rationale: 1 sentence naming what breaks or what's blocked, in plain business language
 - confidence: 0-100, based on sample size and consistency of the signal
-- confidence_rationale: 1 sentence explaining why the confidence is what it is
+- confidence_rationale: 1 sentence explaining why the confidence is what it is (sample size, consistency, any gaps)
 - recurring_themes: 1-3 theme names from the themes list
 - evidence_indices: array of [N] indices that directly support this opportunity
 - representative_quote_index: the single [N] index that best captures this opportunity in the customer's own words
