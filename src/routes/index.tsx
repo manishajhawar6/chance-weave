@@ -1834,7 +1834,7 @@ function CompareScreen({
   const maxPriority = Math.max(...priorities, 1);
 
   return (
-    <div className="mx-auto max-w-[1400px] px-6 py-8">
+    <div className="mx-auto max-w-[1400px] px-6 py-14">
       <Button variant="ghost" size="sm" onClick={onBack} className="mb-4 -ml-2">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to opportunities
