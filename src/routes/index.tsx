@@ -418,9 +418,9 @@ function UploadScreen({
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-md">
           <div className="animate-prism-lift flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-primary/60 bg-surface/80 px-10 py-8 shadow-glow">
             <Upload className="h-8 w-8 text-primary" />
-            <div className="text-[15px] font-semibold tracking-tight">Drop your CSV to analyze</div>
+            <div className="text-[15px] font-semibold tracking-tight">Drop to analyze</div>
             <div className="text-[12px] text-muted-foreground">
-              Auto-detects the feedback column · Stays in this session
+              Feedback column auto-detected · Stays in this session
             </div>
           </div>
         </div>
