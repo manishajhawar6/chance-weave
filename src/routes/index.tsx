@@ -201,7 +201,7 @@ function Home() {
           decision={decisions[screen.index]}
           onDecide={(d) => {
             setDecisions((prev) => ({ ...prev, [screen.index]: d }));
-            toast.success(`Decision saved: ${DECISION_META[d].label}`);
+            toast.success(`Saved · ${DECISION_META[d].label}`);
           }}
           onBack={() => setScreen({ kind: "opportunities", result: screen.result })}
         />
