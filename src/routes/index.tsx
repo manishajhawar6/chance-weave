@@ -39,6 +39,7 @@ import {
   clusterFeedback,
   type ClusterResult,
   type Opportunity,
+  type Theme,
 } from "@/lib/cluster.functions";
 import { DEMO_FEEDBACK } from "@/lib/demo-feedback";
 import { DecisionSummaryDialog } from "@/components/decision-summary";
@@ -376,8 +377,55 @@ function UploadScreen({
   onDemo: () => void;
 }) {
   const [dragging, setDragging] = useState(false);
+
+  // Page-level drop zone: dragging over any part of the screen surfaces a soft
+  // full-page overlay, so the CSV drop target isn't limited to the button.
+  useEffect(() => {
+    const onDragEnter = (e: DragEvent) => {
+      if (e.dataTransfer?.types?.includes("Files")) setDragging(true);
+    };
+    const onDragOver = (e: DragEvent) => {
+      if (e.dataTransfer?.types?.includes("Files")) e.preventDefault();
+    };
+    const onDragLeave = (e: DragEvent) => {
+      if ((e as unknown as { relatedTarget: EventTarget | null }).relatedTarget === null) {
+        setDragging(false);
+      }
+    };
+    const onDrop = (e: DragEvent) => {
+      if (!e.dataTransfer?.files?.length) return;
+      e.preventDefault();
+      setDragging(false);
+      const file = e.dataTransfer.files[0];
+      if (file) onFile(file);
+    };
+    window.addEventListener("dragenter", onDragEnter);
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("dragleave", onDragLeave);
+    window.addEventListener("drop", onDrop);
+    return () => {
+      window.removeEventListener("dragenter", onDragEnter);
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("dragleave", onDragLeave);
+      window.removeEventListener("drop", onDrop);
+    };
+  }, [onFile]);
+
   return (
     <div className="mx-auto max-w-5xl px-6 pb-8">
+      {/* Page-level drop overlay */}
+      {dragging && (
+        <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-md">
+          <div className="animate-prism-lift flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-primary/60 bg-surface/80 px-10 py-8 shadow-glow">
+            <Upload className="h-8 w-8 text-primary" />
+            <div className="text-[15px] font-semibold tracking-tight">Drop your CSV to analyze</div>
+            <div className="text-[12px] text-muted-foreground">
+              Auto-detects the feedback column · Stays in this session
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 1 — Hero */}
       <section className="flex min-h-[calc(68vh-57px)] flex-col items-center justify-center pt-8 pb-4 text-center">
         <h1 className="text-balance text-[52px] font-semibold leading-[1.02] tracking-tight sm:text-7xl">
@@ -462,7 +510,7 @@ function UploadScreen({
             Opportunities you can defend in a roadmap review.
           </h2>
         </div>
-        <div className="mt-6 overflow-hidden rounded-xl border border-border/60 bg-surface/70 shadow-elevate-2">
+        <div className="mt-8 overflow-hidden rounded-2xl border border-border/50 bg-surface shadow-elevate-3 ring-1 ring-black/[0.02]">
           <WorkspacePreview />
         </div>
       </section>
@@ -500,8 +548,8 @@ function WorkspacePreview() {
     { title: "Search improvements", demand: 51, impact: "medium" as const, priority: 38 },
   ];
   return (
-    <div className="text-[13px]">
-      <div className="grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 border-b border-border/50 bg-muted/20 px-6 py-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+    <div className="text-[15px]">
+      <div className="grid grid-cols-[minmax(0,2fr)_170px_130px_110px] items-center gap-5 border-b border-border/40 bg-muted/25 px-8 py-4 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
         <div>Opportunity</div>
         <div>Demand</div>
         <div>Impact</div>
@@ -511,23 +559,26 @@ function WorkspacePreview() {
         <div
           key={r.title}
           className={cn(
-            "grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 px-6 py-5",
+            "grid grid-cols-[minmax(0,2fr)_170px_130px_110px] items-center gap-5 px-8 py-6 transition-colors",
             i < rows.length - 1 && "border-b border-border/30",
+            "hover:bg-muted/20",
           )}
         >
-          <div className="font-medium">{r.title}</div>
+          <div className="text-[15px] font-medium tracking-tight">{r.title}</div>
           <MeterCell value={r.demand} />
           <div>
             <span
               className={cn(
-                "rounded-full px-2 py-0.5 text-[11px] font-medium capitalize",
+                "rounded-full px-2.5 py-1 text-[11px] font-medium capitalize",
                 IMPACT_TONE[r.impact],
               )}
             >
               {r.impact}
             </span>
           </div>
-          <div className="text-right text-lg font-semibold tabular-nums">{r.priority}</div>
+          <div className="text-right text-[22px] font-semibold tabular-nums leading-none">
+            {r.priority}
+          </div>
         </div>
       ))}
     </div>
@@ -610,7 +661,7 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
         })();
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12">
+    <div className="mx-auto max-w-4xl px-6 py-14">
       <p className="text-[11px] font-semibold uppercase tracking-widest text-primary">
         Watch AI think
       </p>
@@ -623,6 +674,8 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
       </p>
 
       <AIReasoningPipeline stage={pipelineStage} className="mt-8" />
+
+      <LoadingNarrative stage={pipelineStage} className="mt-6" />
 
       <div className="mt-10 space-y-6">
         {CLUSTER_DEMO.map((group, gi) => {
@@ -1073,6 +1126,71 @@ function AIReasoningPipeline({
   );
 }
 
+// ---------- Loading narrative (5-phase reasoning story) ----------
+// Explicit story shown during processing: Conversations → Pattern detection →
+// Opportunity discovered → Evidence assembled → Workspace opens. Not a decorative
+// spinner — a plain-language explanation of what Prism is doing right now.
+function LoadingNarrative({
+  stage,
+  className,
+}: {
+  stage: "evidence" | "patterns" | "opportunity" | "decision";
+  className?: string;
+}) {
+  const phases = [
+    { label: "Customer conversations", hint: "Reading raw voices" },
+    { label: "Pattern detection", hint: "Grouping recurring signals" },
+    { label: "Opportunity discovered", hint: "Naming the underlying ask" },
+    { label: "Evidence assembled", hint: "Attaching quotes + rationale" },
+    { label: "Workspace opens", hint: "Handing you the decision" },
+  ];
+  const stageToIdx: Record<typeof stage, number> = {
+    evidence: 0,
+    patterns: 1,
+    opportunity: 2,
+    decision: 3,
+  };
+  const activeIdx = Math.min(stageToIdx[stage] + (stage === "opportunity" ? 1 : 0), 3);
+  return (
+    <ol
+      className={cn(
+        "flex flex-wrap items-stretch gap-1.5 text-[11px]",
+        className,
+      )}
+    >
+      {phases.map((p, i) => {
+        const isActive = i === activeIdx;
+        const isPast = i < activeIdx;
+        return (
+          <li
+            key={p.label}
+            className={cn(
+              "flex min-w-0 flex-1 items-center gap-2 rounded-md border px-2.5 py-1.5 transition-all duration-500",
+              isActive && "border-primary/50 bg-primary/[0.05] text-foreground shadow-elevate-1",
+              isPast && "border-primary/20 bg-primary/[0.02] text-foreground/70",
+              !isActive && !isPast && "border-border/50 bg-transparent text-muted-foreground/70",
+            )}
+          >
+            <span
+              className={cn(
+                "grid h-4 w-4 flex-none place-items-center rounded-full text-[9px] font-semibold tabular-nums",
+                isActive || isPast
+                  ? "bg-primary text-primary-foreground"
+                  : "border border-border/60 text-muted-foreground",
+              )}
+            >
+              {isPast ? <Check className="h-2.5 w-2.5" /> : i + 1}
+            </span>
+            <span className="min-w-0 truncate font-medium">{p.label}</span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+
+
 // ---------- AI/PM chips ----------
 
 function AIChip({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -1175,10 +1293,13 @@ function OpportunitiesScreen({
   const cols = "grid-cols-[32px_minmax(0,3fr)_120px_110px_100px_28px]";
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-16">
+    <div className="mx-auto max-w-6xl px-6 py-14">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Workspace
+          </p>
+          <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-[44px]">
             What opportunities are emerging?
           </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
@@ -1193,10 +1314,16 @@ function OpportunitiesScreen({
       </div>
 
       {result.themes.length > 0 && (
-        <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
-          <span className="uppercase tracking-widest">Themes</span>
+        <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Themes
+          </span>
           {result.themes.map((t) => (
-            <span key={t.name} className="text-foreground/80" title={t.description}>
+            <span
+              key={t.name}
+              title={t.description}
+              className="rounded-full border border-border/50 bg-surface/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-border hover:text-foreground"
+            >
               {t.name}
             </span>
           ))}
@@ -1204,7 +1331,7 @@ function OpportunitiesScreen({
       )}
 
       <div className="mt-12">
-        <div className={cn("grid items-center gap-4 border-b border-border/60 pb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground", cols)}>
+        <div className={cn("grid items-center gap-4 border-b border-border/50 pb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground", cols)}>
           <div />
           <div>Opportunity</div>
           <div>Demand</div>
@@ -1219,93 +1346,90 @@ function OpportunitiesScreen({
           const quote = result.feedback[op.representative_quote_index];
           const isOpen = expanded.has(i);
           return (
-            <div key={i} className="border-b border-border/40">
-              <div className={cn("grid items-center gap-4 py-5", cols, selected.has(i) && "bg-primary/[0.03]")}>
-                <Checkbox
-                  checked={selected.has(i)}
-                  onCheckedChange={() => toggleSelect(i)}
-                  aria-label={`Select ${op.title}`}
-                />
-                <button onClick={() => onOpen(i)} className="text-left">
+            <div key={i} className="border-b border-border/30 last:border-b-0">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => toggleExpand(i)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleExpand(i);
+                  }
+                }}
+                className={cn(
+                  "group grid cursor-pointer items-center gap-4 py-6 transition-colors",
+                  cols,
+                  selected.has(i) ? "bg-primary/[0.035]" : "hover:bg-muted/25",
+                )}
+              >
+                <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                  <Checkbox
+                    checked={selected.has(i)}
+                    onCheckedChange={() => toggleSelect(i)}
+                    aria-label={`Select ${op.title}`}
+                  />
+                </div>
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[15px] font-medium hover:underline">{op.title}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpen(i);
+                      }}
+                      className="text-left text-[15px] font-medium leading-snug tracking-tight hover:text-primary"
+                    >
+                      {op.title}
+                    </button>
                     {decision && (
                       <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", DECISION_META[decision].tone)}>
                         {DECISION_META[decision].label}
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 line-clamp-1 text-[13px] text-muted-foreground">
+                  <div className="mt-1 line-clamp-2 max-w-[52ch] text-[13px] leading-relaxed text-muted-foreground">
                     {op.problem}
                   </div>
-                </button>
-                <MeterCell value={op.customer_demand} />
+                </div>
+                <MeterCell value={op.customer_demand} compact />
                 <div>
                   <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium capitalize", IMPACT_TONE[op.business_impact])}>
                     {op.business_impact}
                   </span>
                 </div>
-                <div className="text-right text-2xl font-semibold tabular-nums">{priority}</div>
-                <button
-                  onClick={() => toggleExpand(i)}
-                  aria-label={isOpen ? "Collapse" : "Expand"}
-                  className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                <div className="text-right text-[28px] font-semibold leading-none tracking-tight tabular-nums">
+                  {priority}
+                </div>
+                <div
+                  aria-hidden
+                  className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground/70 transition-colors group-hover:bg-muted group-hover:text-foreground"
                 >
-                  <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden className={cn("transition-transform", isOpen && "rotate-180")}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" className={cn("transition-transform duration-300", isOpen && "rotate-180")}>
                     <path d="M2 4 L6 8 L10 4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                </button>
+                </div>
               </div>
 
-              {isOpen && (
-                <div className="animate-prism-lift grid gap-8 pb-8 pl-[calc(32px+1rem)] pr-4 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Evidence · {op.evidence_indices.length} quote{op.evidence_indices.length === 1 ? "" : "s"}
-                    </div>
-                    {quote && (
-                      <blockquote className="mt-3 border-l-2 border-primary/40 pl-4 text-[14px] italic leading-relaxed text-foreground/80">
-                        "{quote.slice(0, 220)}{quote.length > 220 ? "…" : ""}"
-                      </blockquote>
-                    )}
-                    <div className="mt-4 text-[12px] text-muted-foreground">
-                      Confidence · {Math.round(op.confidence)}%
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Your inputs
-                    </div>
-                    <div className="mt-3 space-y-3">
-                      <Stepper
-                        label="Engineering effort"
-                        hint="1 low · 10 high"
-                        value={pmi.engineering_effort}
-                        min={1}
-                        max={10}
-                        onChange={(v) => updatePM(i, { engineering_effort: v })}
-                      />
-                      <Stepper
-                        label="Strategic importance"
-                        hint="1–5"
-                        value={pmi.strategic_importance}
-                        min={1}
-                        max={5}
-                        onChange={(v) => updatePM(i, { strategic_importance: v })}
-                      />
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-1.5 text-[10px] text-muted-foreground">
-                      <span>AI {bd.ai}</span>
-                      <span>·</span>
-                      <span>+ Strategic {bd.strategic}</span>
-                      <span>·</span>
-                      <span>− Effort {bd.effortPenalty}</span>
-                      <span>·</span>
-                      <span className="font-semibold text-foreground">= {priority}</span>
-                    </div>
-                  </div>
+              <div
+                className={cn(
+                  "grid overflow-hidden transition-[grid-template-rows,opacity] duration-500 ease-out",
+                  isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+                )}
+              >
+                <div className="min-h-0">
+                  <EditorialExpansion
+                    op={op}
+                    pmi={pmi}
+                    priority={priority}
+                    bd={bd}
+                    themes={result.themes}
+                    feedback={result.feedback}
+                    onPMChange={(patch) => updatePM(i, patch)}
+                    onOpen={() => onOpen(i)}
+                    suggested={suggestDecision(priority, op.confidence)}
+                  />
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
@@ -1328,6 +1452,250 @@ function OpportunitiesScreen({
     </div>
   );
 }
+
+function suggestDecision(priority: number, confidence: number): Decision {
+  if (priority >= 70 && confidence >= 60) return "prioritize";
+  if (priority >= 45) return "investigate";
+  if (confidence < 50) return "monitor";
+  return "not_now";
+}
+
+function EditorialExpansion({
+  op,
+  pmi,
+  priority,
+  bd,
+  themes,
+  feedback,
+  onPMChange,
+  onOpen,
+  suggested,
+}: {
+  op: Opportunity;
+  pmi: PMInput;
+  priority: number;
+  bd: { ai: number; strategic: number; effortPenalty: number; total: number };
+  themes: Theme[];
+  feedback: string[];
+  onPMChange: (patch: Partial<PMInput>) => void;
+  onOpen: () => void;
+  suggested: Decision;
+}) {
+  const evidenceIdxs = op.evidence_indices.slice(0, 3);
+  const primaryQuote = feedback[op.representative_quote_index];
+  const otherQuotes = evidenceIdxs
+    .filter((idx) => idx !== op.representative_quote_index)
+    .slice(0, 2)
+    .map((idx) => feedback[idx])
+    .filter(Boolean);
+  const relatedThemes = themes.filter((t) => op.recurring_themes.includes(t.name));
+  const meta = DECISION_META[suggested];
+
+  return (
+    <article className="mx-auto max-w-[68ch] px-2 pb-12 pt-2 pl-[calc(32px+1rem)]">
+      {/* Section rail */}
+      <div className="space-y-10 [&>section]:animate-prism-lift">
+        {/* 1 · Opportunity summary */}
+        <section>
+          <SectionKicker n={1} label="Opportunity" />
+          <p className="mt-3 font-display text-[19px] leading-[1.55] tracking-tight text-foreground/90">
+            {op.problem}
+          </p>
+        </section>
+
+        {/* 2 · Customer quotes */}
+        {primaryQuote && (
+          <section>
+            <SectionKicker n={2} label="In their words" />
+            <figure className="mt-4">
+              <svg
+                aria-hidden
+                viewBox="0 0 32 24"
+                className="h-5 w-5 text-primary/50"
+                fill="currentColor"
+              >
+                <path d="M0 24V14C0 6.3 4.6 1.3 12 0l1.3 4C8.7 5.3 6 8.7 6 13h6v11H0zm20 0V14c0-7.7 4.6-12.7 12-14l1.3 4C28.7 5.3 26 8.7 26 13h6v11H20z" />
+              </svg>
+              <blockquote className="mt-2 font-display text-[22px] leading-[1.4] tracking-tight text-foreground">
+                {primaryQuote.slice(0, 260)}
+                {primaryQuote.length > 260 ? "…" : ""}
+              </blockquote>
+              <figcaption className="mt-3 text-[11px] uppercase tracking-widest text-muted-foreground">
+                Representative voice · 1 of {op.evidence_indices.length}
+              </figcaption>
+            </figure>
+            {otherQuotes.length > 0 && (
+              <div className="mt-6 space-y-4 border-l border-border/60 pl-5">
+                {otherQuotes.map((q, i) => (
+                  <p
+                    key={i}
+                    className="text-[14px] italic leading-relaxed text-muted-foreground"
+                  >
+                    "{q.slice(0, 180)}{q.length > 180 ? "…" : ""}"
+                  </p>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* 3 · AI reasoning memo */}
+        <section>
+          <SectionKicker n={3} label="AI reasoning" ai />
+          <div className="mt-3 rounded-lg border border-border/50 bg-surface-muted/50 p-5">
+            <p className="text-[15px] leading-[1.7] text-foreground/85">
+              Across {op.evidence_indices.length} customer conversations, the model detected a
+              consistent signal around <em className="not-italic font-medium text-foreground">{op.title.toLowerCase()}</em>.
+              Customer demand reads at <span className="font-semibold tabular-nums text-foreground">{Math.round(op.customer_demand)}</span>{" "}
+              and confidence at <span className="font-semibold tabular-nums text-foreground">{Math.round(op.confidence)}%</span>.
+            </p>
+            <p className="mt-3 text-[14px] leading-[1.7] text-muted-foreground">
+              {op.confidence_rationale}
+            </p>
+          </div>
+        </section>
+
+        {/* 4 · Why clustered */}
+        {relatedThemes.length > 0 && (
+          <section>
+            <SectionKicker n={4} label="Why clustered together" />
+            <p className="mt-3 text-[14px] leading-relaxed text-muted-foreground">
+              These conversations were grouped under the same opportunity because they share these
+              recurring themes:
+            </p>
+            <ul className="mt-4 space-y-3">
+              {relatedThemes.map((t) => (
+                <li key={t.name} className="flex gap-3">
+                  <span className="mt-1.5 h-1 w-1 flex-none rounded-full bg-primary/70" />
+                  <div>
+                    <div className="text-[14px] font-medium tracking-tight">{t.name}</div>
+                    <div className="text-[13px] leading-relaxed text-muted-foreground">
+                      {t.description}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* 5 · Business impact */}
+        <section>
+          <SectionKicker n={5} label="Business impact" />
+          <div className="mt-3 flex items-center gap-3">
+            <span
+              className={cn(
+                "rounded-full px-3 py-1 text-[12px] font-medium capitalize",
+                IMPACT_TONE[op.business_impact],
+              )}
+            >
+              {op.business_impact}
+            </span>
+            <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              AI-inferred
+            </span>
+          </div>
+          <p className="mt-3 text-[15px] leading-[1.7] text-foreground/85">
+            {op.business_impact_rationale}
+          </p>
+        </section>
+
+        {/* 6 · PM inputs */}
+        <section>
+          <SectionKicker n={6} label="Your inputs" pm />
+          <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+            Add the two things AI can't know — engineering cost and strategic weight. Priority
+            recomputes as you type.
+          </p>
+          <div className="mt-4 rounded-lg border border-border/50 bg-surface p-4">
+            <div className="space-y-3">
+              <Stepper
+                label="Engineering effort"
+                hint="1 low · 10 high"
+                value={pmi.engineering_effort}
+                min={1}
+                max={10}
+                onChange={(v) => onPMChange({ engineering_effort: v })}
+              />
+              <Stepper
+                label="Strategic importance"
+                hint="1–5"
+                value={pmi.strategic_importance}
+                min={1}
+                max={5}
+                onChange={(v) => onPMChange({ strategic_importance: v })}
+              />
+            </div>
+            <div className="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-border/40 pt-3 text-[11px] text-muted-foreground">
+              <span>AI {bd.ai}</span>
+              <span>+ Strategic {bd.strategic}</span>
+              <span>− Effort {bd.effortPenalty}</span>
+              <span className="ml-auto text-[13px] font-semibold tabular-nums text-foreground">
+                = {priority}
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* 7 · Recommended decision */}
+        <section>
+          <SectionKicker n={7} label="Recommended next step" />
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <span
+              className={cn(
+                "rounded-full px-3 py-1.5 text-[12px] font-semibold",
+                meta.tone,
+              )}
+            >
+              {meta.label}
+            </span>
+            <span className="text-[12px] text-muted-foreground">
+              Based on priority {priority} · confidence {Math.round(op.confidence)}%
+            </span>
+            <Button size="sm" variant="ghost" onClick={onOpen} className="ml-auto">
+              Open full memo →
+            </Button>
+          </div>
+        </section>
+      </div>
+    </article>
+  );
+}
+
+function SectionKicker({
+  n,
+  label,
+  ai,
+  pm,
+}: {
+  n: number;
+  label: string;
+  ai?: boolean;
+  pm?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="grid h-5 w-5 place-items-center rounded-full border border-border/60 text-[10px] font-semibold tabular-nums text-muted-foreground">
+        {n}
+      </span>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+        {label}
+      </span>
+      {ai && (
+        <span className="rounded-sm bg-primary/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-primary">
+          AI
+        </span>
+      )}
+      {pm && (
+        <span className="rounded-sm border border-border/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
+          You
+        </span>
+      )}
+    </div>
+  );
+}
+
+
 
 function Stepper({
   label,
@@ -1382,16 +1750,26 @@ function Stepper({
 
 
 
-function MeterCell({ value, tone = "primary" }: { value: number; tone?: "primary" | "muted" }) {
+function MeterCell({
+  value,
+  tone = "primary",
+  compact = false,
+}: {
+  value: number;
+  tone?: "primary" | "muted";
+  compact?: boolean;
+}) {
   return (
     <div>
-      <div className="flex items-center gap-2">
-        <span className="w-8 text-xs font-semibold tabular-nums">{Math.round(value)}</span>
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+      <div className="flex items-center gap-2.5">
+        <span className={cn("tabular-nums font-semibold", compact ? "w-7 text-[13px]" : "w-8 text-xs")}>
+          {Math.round(value)}
+        </span>
+        <div className={cn("flex-1 overflow-hidden rounded-full bg-muted/70", compact ? "h-1 max-w-[60px]" : "h-1.5")}>
           <div
             className={cn(
-              "h-full rounded-full",
-              tone === "primary" ? "bg-primary" : "bg-muted-foreground/50",
+              "h-full rounded-full transition-[width] duration-500",
+              tone === "primary" ? "bg-primary/70" : "bg-muted-foreground/40",
             )}
             style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
           />
@@ -1459,18 +1837,18 @@ function CompareScreen({
   const maxPriority = Math.max(...priorities, 1);
 
   return (
-    <div className="mx-auto max-w-[1400px] px-6 py-8">
+    <div className="mx-auto max-w-[1400px] px-6 py-14">
       <Button variant="ghost" size="sm" onClick={onBack} className="mb-4 -ml-2">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to opportunities
       </Button>
-      <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
         Comparison workspace
       </p>
-      <h1 className="mt-1 text-3xl font-semibold tracking-tight">
+      <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-[44px]">
         Comparing {indices.length} opportunities
       </h1>
-      <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
+      <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
         Two clearly-separated inputs feed the recommendation:{" "}
         <span className="text-primary">what AI inferred from customer feedback</span> and{" "}
         <span className="text-foreground/80">what you contribute as PM</span>. The
@@ -1829,18 +2207,18 @@ function DetailScreen({
   if (!pm?.strategic_importance) missingPmInputs.push("strategic importance");
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
+    <div className="mx-auto max-w-4xl px-6 py-14">
       <Button variant="ghost" size="sm" onClick={onBack} className="mb-4 -ml-2">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to opportunities
       </Button>
 
       {/* Memo header */}
-      <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
         Priority brief
       </p>
-      <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">{op.title}</h1>
-      <p className="mt-3 max-w-3xl text-base leading-relaxed text-muted-foreground">
+      <h1 className="mt-1 text-4xl font-semibold tracking-tight sm:text-[44px]">{op.title}</h1>
+      <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
         {op.problem}
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
