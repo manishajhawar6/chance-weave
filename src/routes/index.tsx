@@ -356,175 +356,163 @@ function UploadScreen({
 }) {
   const [dragging, setDragging] = useState(false);
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-57px)] max-w-5xl flex-col items-center px-6 pb-24 pt-16 sm:pt-24">
-      <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-border/70 bg-surface/70 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground shadow-elevate-1 backdrop-blur">
-        <span className="relative flex h-1.5 w-1.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/50" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-        </span>
-        Prism · for product managers
-      </div>
+    <div className="mx-auto max-w-5xl px-6 pb-32">
+      {/* 1 — Hero */}
+      <section className="flex min-h-[calc(100vh-57px)] flex-col items-center justify-center py-24 text-center">
+        <h1 className="text-balance text-[52px] font-semibold leading-[1.02] tracking-tight sm:text-7xl">
+          Turn customer conversations
+          <br className="hidden sm:block" />{" "}
+          into <span className="text-primary">confident</span> product decisions.
+        </h1>
+        <p className="mt-8 max-w-xl text-balance text-lg leading-relaxed text-muted-foreground">
+          Prism reads scattered customer conversations, surfaces the opportunities inside, and
+          hands you the evidence to prioritize with conviction.
+        </p>
 
-      <h1 className="text-balance text-center text-[44px] font-semibold leading-[1.05] tracking-tight sm:text-6xl">
-        Turn customer conversations
-        <br className="hidden sm:block" />{" "}
-        into <span className="bg-gradient-to-r from-primary to-[oklch(0.66_0.2_285)] bg-clip-text text-transparent">confident</span> product decisions.
-      </h1>
-      <p className="mt-6 max-w-xl text-balance text-center text-[15px] leading-relaxed text-muted-foreground sm:text-base">
-        Prism reads scattered customer conversations, surfaces the opportunities hiding inside, and
-        hands you the evidence to prioritize with conviction. AI synthesizes. You decide.
-      </p>
-
-      {/* Transformation strip — the product promise in five seconds */}
-      <TransformationStrip />
-
-      <label
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragging(false);
-          const file = e.dataTransfer.files?.[0];
-          if (file) onFile(file);
-        }}
-        className={cn(
-          "group mt-10 flex w-full max-w-2xl cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed p-10 text-center transition-all",
-          dragging
-            ? "border-primary/70 bg-primary/[0.04] shadow-glow"
-            : "border-border/70 bg-surface/60 hover:border-primary/40 hover:bg-surface/80",
-        )}
-      >
-        <div className="rounded-xl bg-primary/10 p-3 ring-1 ring-primary/15 transition-transform group-hover:scale-105">
-          <Upload className="h-5 w-5 text-primary" />
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
+          <Button onClick={onDemo} size="lg" className="h-12 px-6 text-base shadow-elevate-2">
+            <Play className="mr-2 h-4 w-4" />
+            Run demo
+          </Button>
+          <label
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragging(true);
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setDragging(false);
+              const file = e.dataTransfer.files?.[0];
+              if (file) onFile(file);
+            }}
+            className={cn(
+              "inline-flex h-12 cursor-pointer items-center justify-center rounded-md border bg-transparent px-6 text-base font-medium transition-colors",
+              dragging
+                ? "border-primary/60 bg-primary/[0.04] text-primary"
+                : "border-border hover:border-foreground/30",
+            )}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            Upload CSV
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              className="sr-only"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onFile(file);
+                e.target.value = "";
+              }}
+            />
+          </label>
         </div>
-        <p className="text-sm font-medium">Drop a CSV of customer conversations</p>
-        <p className="text-xs text-muted-foreground">
+        <p className="mt-6 text-xs text-muted-foreground">
           Auto-detects the feedback column · First 200 rows · ~15s analysis
         </p>
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          className="sr-only"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) onFile(file);
-            e.target.value = "";
-          }}
-        />
-      </label>
+      </section>
 
-      {/* Prominent demo path — the first thing a recruiter clicks */}
-      <div className="mt-4 flex w-full max-w-2xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/[0.08] via-primary/[0.04] to-transparent p-4 pl-5 shadow-elevate-1">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <div className="rounded-md bg-primary/15 p-1.5">
-              <Play className="h-3.5 w-3.5 text-primary" />
-            </div>
-            <span className="text-sm font-semibold">See it in one click</span>
-          </div>
-          <p className="mt-1 max-w-md text-xs text-muted-foreground">
-            30 synthetic customer conversations. Nothing uploaded — the flow runs on a sample set.
+      {/* 2 — AI reasoning animation */}
+      <section className="border-t border-border/50 py-28">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            How Prism thinks
+          </p>
+          <h2 className="mt-3 text-4xl font-semibold tracking-tight">
+            Evidence in. Reasoning out.
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">
+            Every opportunity carries the trail it was built from — customer voices, recurring
+            patterns, and the rationale behind the recommendation.
           </p>
         </div>
-        <Button onClick={onDemo} size="lg" className="shrink-0 shadow-elevate-2">
-          <Play className="mr-2 h-4 w-4" />
-          Run synthetic demo
-        </Button>
-      </div>
-
-
-      <div className="mt-12 grid w-full max-w-3xl gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-border/60 bg-surface/70 p-5">
-          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-primary">
-            <Compass className="h-3.5 w-3.5" />
-            You'll leave with
-          </div>
-          <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-foreground/85">
-            <li className="flex items-start gap-2.5">
-              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
-              Opportunities ranked by real evidence
-            </li>
-            <li className="flex items-start gap-2.5">
-              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
-              Recurring themes and customer-demand patterns
-            </li>
-            <li className="flex items-start gap-2.5">
-              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
-              A priority brief you'd take into a roadmap meeting
-            </li>
-          </ul>
+        <div className="mt-12">
+          <AIReasoningPipeline stage="opportunity" />
         </div>
-        <div className="rounded-xl border border-border/60 bg-surface/70 p-5">
-          <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            <Lock className="h-3.5 w-3.5" />
-            What you can trust
-          </div>
-          <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-foreground/85">
-            <li className="flex items-start gap-2.5">
-              <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-              Your CSV stays within this analysis session
-            </li>
-            <li className="flex items-start gap-2.5">
-              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-              Every claim links back to a customer quote
-            </li>
-            <li className="flex items-start gap-2.5">
-              <UserIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-              AI never makes the roadmap call — you do
-            </li>
-          </ul>
+      </section>
+
+      {/* 3 — Workspace preview */}
+      <section className="border-t border-border/50 py-28">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            The workspace
+          </p>
+          <h2 className="mt-3 text-4xl font-semibold tracking-tight">
+            Opportunities you can defend in a roadmap review.
+          </h2>
         </div>
-      </div>
+        <div className="mt-12 overflow-hidden rounded-2xl border border-border/60 bg-surface/70 shadow-elevate-3">
+          <WorkspacePreview />
+        </div>
+      </section>
+
+      {/* 4 — Philosophy */}
+      <section className="border-t border-border/50 py-32 text-center">
+        <p className="text-balance text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+          <span className="text-primary">AI synthesizes.</span>{" "}
+          <span className="text-foreground">You decide.</span>
+        </p>
+        <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-muted-foreground">
+          Prism never makes the roadmap call. It hands you the evidence, the patterns, and the
+          rationale — then steps back.
+        </p>
+      </section>
+
+      {/* 5 — Footer */}
+      <footer className="flex flex-wrap items-center justify-between gap-4 border-t border-border/50 py-10 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <PrismMark className="h-4 w-4 text-primary" />
+          <span className="font-medium text-foreground">Prism</span>
+          <span>— Confident product decisions from customer conversations.</span>
+        </div>
+        <span>Built for product managers.</span>
+      </footer>
     </div>
   );
 }
 
-// A five-second visual answer to "what does Prism do?"
-function TransformationStrip() {
-  const steps: { icon: typeof Users; label: string; sub: string }[] = [
-    { icon: Users, label: "Scattered conversations", sub: "CSV of customer voices" },
-    { icon: Sparkles, label: "AI reasoning", sub: "Cluster · evidence · rationale" },
-    { icon: Layers, label: "Clear opportunities", sub: "Ranked, with sources" },
-    { icon: Rocket, label: "Confident decision", sub: "You own the call" },
+// A static, non-interactive snapshot of what the workspace looks like after analysis.
+function WorkspacePreview() {
+  const rows = [
+    { title: "Enterprise readiness", demand: 92, impact: "critical" as const, priority: 87 },
+    { title: "Mobile reliability", demand: 74, impact: "high" as const, priority: 62 },
+    { title: "Search improvements", demand: 51, impact: "medium" as const, priority: 38 },
   ];
   return (
-    <div className="mt-10 grid w-full max-w-3xl grid-cols-1 gap-2 rounded-2xl border border-border/60 bg-surface/60 p-2 shadow-elevate-1 sm:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr]">
-      {steps.map((s, i) => {
-        const Icon = s.icon;
-        return (
-          <div key={s.label} className="contents">
-            <div className="flex items-center gap-3 rounded-xl px-3 py-2.5">
-              <div
-                className={cn(
-                  "grid h-8 w-8 shrink-0 place-items-center rounded-lg",
-                  i === 3
-                    ? "bg-primary text-primary-foreground shadow-elevate-2"
-                    : "bg-primary/10 text-primary",
-                )}
-              >
-                <Icon className="h-4 w-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="truncate text-[13px] font-medium leading-tight">{s.label}</div>
-                <div className="truncate text-[11px] text-muted-foreground">{s.sub}</div>
-              </div>
-            </div>
-            {i < steps.length - 1 && (
-              <div className="hidden items-center justify-center text-muted-foreground/50 sm:flex">
-                <svg width="18" height="12" viewBox="0 0 18 12" fill="none" aria-hidden>
-                  <path d="M1 6 H16 M11 1 L16 6 L11 11" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-            )}
+    <div className="text-[13px]">
+      <div className="grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 border-b border-border/60 bg-muted/20 px-6 py-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <div>Opportunity</div>
+        <div>Demand</div>
+        <div>Impact</div>
+        <div className="text-right">Priority</div>
+      </div>
+      {rows.map((r, i) => (
+        <div
+          key={r.title}
+          className={cn(
+            "grid grid-cols-[minmax(0,2fr)_140px_110px_90px] items-center gap-4 px-6 py-4",
+            i < rows.length - 1 && "border-b border-border/40",
+          )}
+        >
+          <div className="font-medium">{r.title}</div>
+          <MeterCell value={r.demand} />
+          <div>
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[11px] font-medium capitalize",
+                IMPACT_TONE[r.impact],
+              )}
+            >
+              {r.impact}
+            </span>
           </div>
-        );
-      })}
+          <div className="text-right text-lg font-semibold tabular-nums">{r.priority}</div>
+        </div>
+      ))}
     </div>
   );
 }
+
 
 
 // ---------- Screen 2: Processing (live signal clustering) ----------
