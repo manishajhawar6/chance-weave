@@ -9,7 +9,7 @@ import {
   Bot,
   User as UserIcon,
   Check,
-  Loader2,
+  
   Quote,
   Layers,
   TrendingUp,
@@ -305,7 +305,8 @@ function FlowStepper({ screen }: { screen: Screen }) {
           <span className="text-[15px] font-semibold tracking-tight">Prism</span>
           <span className="hidden text-muted-foreground/70 sm:inline">·</span>
           <span className="hidden text-[11px] font-medium tracking-wide text-muted-foreground sm:inline">
-            Turn customer conversations into confident product decisions
+            <span className="text-primary/80">AI synthesizes.</span>{" "}
+            <span className="text-amber-600 dark:text-amber-400">You decide.</span>
           </span>
         </div>
         <div className="ml-auto hidden items-center gap-1.5 md:flex">
@@ -584,17 +585,36 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
     return () => clearInterval(t);
   }, []);
 
+  const activeGroup = CLUSTER_DEMO.findIndex((_, gi) => {
+    const s = stageAt(gi, tick);
+    return s.state !== "named";
+  });
+  const pipelineStage: "evidence" | "patterns" | "opportunity" | "decision" =
+    activeGroup === -1
+      ? "opportunity"
+      : (() => {
+          const s = stageAt(activeGroup, tick);
+          if (s.state === "revealing") return "evidence";
+          if (s.state === "pausing") return "patterns";
+          return "opportunity";
+        })();
+
   return (
     <div className="mx-auto max-w-4xl px-6 py-12">
-      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-        What patterns is AI discovering?
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-primary">
+        Watch AI think
+      </p>
+      <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">
+        <span className="text-shimmer">What patterns is AI discovering?</span>
       </h1>
       <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-        Reading {feedback.length} customer conversations. Watch individual voices come in, then the
-        pattern resolve.
+        Reading {feedback.length} customer conversations. Individual voices arrive, cluster into
+        patterns, and resolve into opportunities. You'll make the call from there.
       </p>
 
-      <div className="mt-8 space-y-6">
+      <AIReasoningPipeline stage={pipelineStage} className="mt-8" />
+
+      <div className="mt-10 space-y-6">
         {CLUSTER_DEMO.map((group, gi) => {
           const { state, shown } = stageAt(gi, tick);
           const named = state === "named";
@@ -606,12 +626,12 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
             <Card
               key={group.name}
               className={cn(
-                "border p-5 transition-colors",
+                "border p-5 transition-all duration-500",
                 named
-                  ? "border-primary/40 bg-primary/5"
+                  ? "border-primary/40 bg-primary/[0.04] shadow-elevate-2 -translate-y-0.5"
                   : active
-                    ? "border-border/80"
-                    : "border-border/40 bg-muted/20 opacity-70",
+                    ? "border-border/80 shadow-elevate-1"
+                    : "border-border/40 bg-muted/20 opacity-60",
               )}
             >
               <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-widest">
@@ -622,7 +642,10 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
                   </span>
                 ) : active ? (
                   <span className="flex items-center gap-1.5 text-foreground">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
+                      <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+                    </span>
                     Listening to customers
                   </span>
                 ) : (
@@ -631,15 +654,17 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
               </div>
 
               <div className="mt-3 space-y-2">
-                {group.customers.slice(0, shown).map((c) => (
+                {group.customers.slice(0, shown).map((c, idx) => (
                   <div
                     key={c.id}
-                    className="flex items-start gap-3 rounded-md border border-border/60 bg-card px-3 py-2 text-sm animate-in fade-in slide-in-from-left-2"
+                    style={{ animationDelay: `${idx * 60}ms` }}
+                    className="animate-prism-merge flex items-start gap-3 rounded-md border border-border/60 bg-card px-3 py-2 text-sm shadow-elevate-1"
                   >
-                    <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-primary">
                       Customer {c.id}
                     </span>
                     <span className="text-foreground">{c.quote}</span>
+                    <span className="ml-auto text-muted-foreground/40">→</span>
                   </div>
                 ))}
                 {shown === 0 && !named && (
@@ -648,17 +673,19 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
               </div>
 
               {pausing && (
-                <div className="mt-4 flex items-center gap-2 text-sm italic text-muted-foreground animate-pulse">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  These appear to describe…
+                <div className="mt-4 flex items-center gap-2 text-sm italic text-muted-foreground">
+                  <Sparkles className="h-4 w-4 animate-pulse text-primary" />
+                  <span className="text-shimmer font-medium">
+                    These appear to describe…
+                  </span>
                 </div>
               )}
 
               {named && (
-                <div className="mt-4 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 animate-in fade-in zoom-in-95">
+                <div className="animate-prism-lift mt-4 flex items-center gap-2 rounded-md border border-primary/30 bg-primary/10 px-3 py-2">
                   <Sparkles className="h-4 w-4 text-primary" />
-                  <span className="text-xs uppercase tracking-widest text-primary">
-                    These appear to describe
+                  <span className="text-[10px] uppercase tracking-widest text-primary/80">
+                    Named
                   </span>
                   <span className="text-base font-semibold text-primary">{group.name}</span>
                 </div>
@@ -668,9 +695,111 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
         })}
       </div>
 
-      <p className="mt-8 text-center text-xs text-muted-foreground">
-        AI is running on the server · your real results appear as soon as clustering completes
+      <p className="mt-8 flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
+        <Bot className="h-3 w-3" />
+        <span>AI synthesizes patterns from evidence · you own the final call</span>
       </p>
+    </div>
+  );
+}
+
+// ---------- Explainable AI Reasoning Pipeline ----------
+
+function AIReasoningPipeline({
+  stage,
+  className,
+}: {
+  stage: "evidence" | "patterns" | "opportunity" | "decision";
+  className?: string;
+}) {
+  const steps: {
+    key: typeof stage;
+    label: string;
+    sub: string;
+    icon: typeof Quote;
+    owner: "ai" | "pm";
+  }[] = [
+    { key: "evidence", label: "Evidence", sub: "Customer voices", icon: Quote, owner: "ai" },
+    { key: "patterns", label: "Patterns", sub: "Recurring signals", icon: Layers, owner: "ai" },
+    { key: "opportunity", label: "Opportunity", sub: "With rationale", icon: Sparkles, owner: "ai" },
+    { key: "decision", label: "Human decision", sub: "PM owns the call", icon: UserIcon, owner: "pm" },
+  ];
+  const activeIdx = steps.findIndex((s) => s.key === stage);
+  return (
+    <div
+      className={cn(
+        "rounded-2xl border border-border/60 bg-surface/70 p-4 shadow-elevate-1 backdrop-blur",
+        className,
+      )}
+    >
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Explainable reasoning pipeline
+        </span>
+        <span className="hidden text-[10px] text-muted-foreground sm:inline">
+          <span className="text-primary">AI synthesizes</span> ·{" "}
+          <span className="text-amber-600 dark:text-amber-400">you decide</span>
+        </span>
+      </div>
+      <div className="grid grid-cols-4 items-stretch gap-1.5">
+        {steps.map((s, i) => {
+          const Icon = s.icon;
+          const isActive = i === activeIdx;
+          const isPast = i < activeIdx;
+          const isPm = s.owner === "pm";
+          return (
+            <div key={s.key} className="relative">
+              <div
+                className={cn(
+                  "flex h-full flex-col items-start gap-1 rounded-xl border p-2.5 transition-all duration-500",
+                  isActive && !isPm && "border-primary/50 bg-primary/[0.06] shadow-elevate-2 -translate-y-0.5",
+                  isActive && isPm && "border-amber-500/50 bg-amber-500/[0.06]",
+                  isPast && "border-primary/25 bg-primary/[0.03]",
+                  !isActive && !isPast && "border-border/60 bg-transparent opacity-70",
+                )}
+              >
+                <div className="flex w-full items-center justify-between">
+                  <div
+                    className={cn(
+                      "grid h-6 w-6 place-items-center rounded-md transition-colors",
+                      isPm
+                        ? isActive
+                          ? "bg-amber-500 text-white"
+                          : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                        : isActive || isPast
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-primary/10 text-primary/60",
+                    )}
+                  >
+                    <Icon className="h-3 w-3" />
+                  </div>
+                  {isActive && (
+                    <span className="text-[9px] font-semibold uppercase tracking-widest text-primary">
+                      Now
+                    </span>
+                  )}
+                </div>
+                <div className="mt-1 text-[12px] font-semibold leading-tight">{s.label}</div>
+                <div className="text-[10px] leading-tight text-muted-foreground">{s.sub}</div>
+              </div>
+              {i < steps.length - 1 && (
+                <div className="pointer-events-none absolute -right-1.5 top-1/2 z-10 hidden -translate-y-1/2 text-muted-foreground/50 sm:block">
+                  <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
+                    <path
+                      d="M1 5 H8 M6 2 L9 5 L6 8"
+                      stroke="currentColor"
+                      strokeWidth="1.25"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -827,7 +956,7 @@ function OpportunitiesScreen({
               <div
                 key={i}
                 className={cn(
-                  "grid grid-cols-[36px_minmax(0,2.2fr)_110px_minmax(0,1.4fr)_120px_240px_180px] items-start gap-3 border-b border-border/60 px-4 py-3 transition-colors last:border-b-0",
+                  "hover-lift animate-prism-lift grid grid-cols-[36px_minmax(0,2.2fr)_110px_minmax(0,1.4fr)_120px_240px_180px] items-start gap-3 border-b border-border/60 bg-card px-4 py-3 last:border-b-0",
                   selected.has(i) && "bg-primary/5",
                 )}
               >
@@ -1442,15 +1571,15 @@ function DetailScreen({
         ))}
       </div>
 
-      {/* Section 1 — What customers are telling us */}
+      {/* Section 1 — What customers are saying */}
       <MemoSection
         source="ai"
-        eyebrow="Section 1"
-        title="What customers are telling us"
+        eyebrow="Section 1 · Evidence"
+        title="What customers are saying"
         lede={`${op.evidence_indices.length} customer${op.evidence_indices.length === 1 ? "" : "s"} in the analyzed feedback raised this pattern${representative ? `. One voice captures it:` : "."}`}
       >
         {representative && (
-          <blockquote className="mt-3 border-l-2 border-primary/50 pl-4 text-base italic leading-relaxed text-foreground">
+          <blockquote className="animate-prism-quote mt-3 border-l-2 border-primary/50 pl-4 text-base italic leading-relaxed text-foreground">
             "{representative.text}"
             <div className="mt-1 not-italic text-[11px] uppercase tracking-widest text-muted-foreground">
               Customer #{representative.i + 1} · representative
@@ -1463,8 +1592,12 @@ function DetailScreen({
           </div>
           <ScrollArea className="max-h-[280px] rounded-lg border border-border/60">
             <ul className="divide-y divide-border/60">
-              {evidence.map((e) => (
-                <li key={e.i} className="flex gap-3 px-4 py-2.5">
+              {evidence.map((e, idx) => (
+                <li
+                  key={e.i}
+                  style={{ animationDelay: `${idx * 40}ms` }}
+                  className="animate-prism-merge flex gap-3 px-4 py-2.5"
+                >
                   <span className="mt-0.5 shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                     #{e.i + 1}
                   </span>
@@ -1479,11 +1612,11 @@ function DetailScreen({
         </div>
       </MemoSection>
 
-      {/* Section 2 — Why this matters to the business */}
+      {/* Section 2 — Why this matters */}
       <MemoSection
         source="ai"
-        eyebrow="Section 2"
-        title="Why this matters to the business"
+        eyebrow="Section 2 · Signals"
+        title="Why this matters"
         lede={op.business_impact_rationale}
       >
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -1515,10 +1648,65 @@ function DetailScreen({
         </div>
       </MemoSection>
 
-      {/* Section 3 — What's driving this recommendation */}
+      {/* Section 3 — AI reasoning */}
+      <MemoSection
+        source="ai"
+        eyebrow="Section 3 · AI reasoning"
+        title="How AI reached this pattern"
+        lede={op.confidence_rationale}
+      >
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-4">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+              Signal strength
+            </div>
+            <div className="mt-2 text-2xl font-semibold tabular-nums">
+              {Math.round(op.customer_demand)}
+              <span className="text-sm font-normal text-muted-foreground"> / 100</span>
+            </div>
+            <div className="mt-1 text-[11px] text-muted-foreground">
+              Composite of mention count and expressed intensity.
+            </div>
+          </div>
+          <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-4">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+              Confidence
+            </div>
+            <div className="mt-2 text-2xl font-semibold tabular-nums">
+              {Math.round(op.confidence)}
+              <span className="text-sm font-normal text-muted-foreground"> / 100</span>
+            </div>
+            <div className="mt-1 text-[11px] text-muted-foreground">
+              {confidenceTier} — based on sample size and consistency.
+            </div>
+          </div>
+          <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-4">
+            <div className="text-[10px] font-semibold uppercase tracking-widest text-primary">
+              Recurring themes
+            </div>
+            <div className="mt-2 flex flex-wrap gap-1">
+              {op.recurring_themes.length ? (
+                op.recurring_themes.map((t) => (
+                  <span key={t} className="rounded bg-primary/10 px-1.5 py-0.5 text-[11px] text-primary">
+                    {t}
+                  </span>
+                ))
+              ) : (
+                <span className="text-[11px] text-muted-foreground">None linked</span>
+              )}
+            </div>
+          </div>
+        </div>
+        <p className="mt-4 flex items-center gap-2 text-[11px] italic text-muted-foreground">
+          <Bot className="h-3 w-3 shrink-0 text-primary" />
+          AI synthesizes what the evidence shows. It doesn't tell you what to do next.
+        </p>
+      </MemoSection>
+
+      {/* Section 4 — Priority (blend of AI + PM inputs) */}
       <MemoSection
         source="mixed"
-        eyebrow="Section 3"
+        eyebrow="Section 4 · Priority"
         title="What's driving this recommendation"
         lede="Priority emerges from AI-observed customer signal combined with your effort and strategic scoring — not a single opaque number."
       >
@@ -1581,7 +1769,7 @@ function DetailScreen({
       {/* Section 4 — What still needs validation */}
       <MemoSection
         source="ai"
-        eyebrow="Section 4"
+        eyebrow="Section 5 · Open questions"
         title="What still needs validation"
         lede={op.confidence_rationale}
       >
@@ -1621,9 +1809,9 @@ function DetailScreen({
       {/* Section 5 — Decision */}
       <MemoSection
         source="pm"
-        eyebrow="Section 5"
-        title="Decision"
-        lede="Pick one. You can revisit and change it anytime — this is your call, not the AI's."
+        eyebrow="Section 6 · PM decision"
+        title="Your call"
+        lede="AI synthesized the evidence above. This next step is yours — pick one. You can revisit and change it anytime."
       >
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {(Object.keys(DECISION_META) as Decision[]).map((d) => {
