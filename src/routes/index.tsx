@@ -1809,9 +1809,9 @@ function DetailScreen({
       {/* Section 5 — Decision */}
       <MemoSection
         source="pm"
-        eyebrow="Section 5"
-        title="Decision"
-        lede="Pick one. You can revisit and change it anytime — this is your call, not the AI's."
+        eyebrow="Section 6 · PM decision"
+        title="Your call"
+        lede="AI synthesized the evidence above. This next step is yours — pick one. You can revisit and change it anytime."
       >
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {(Object.keys(DECISION_META) as Decision[]).map((d) => {
