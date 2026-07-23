@@ -104,6 +104,14 @@ ${numbered}`;
 // names from every AI-authored text field so the demo stays portfolio-safe
 // even if the model slips a brand into its rationale.
 const VENDOR_REPLACEMENTS: [RegExp, string][] = [
+  // Literal line-level replacements requested for demo/uploaded quotes
+  [/Need SSO with Okta before rollout\./gi, "Need single sign-on support before rollout."],
+  [/SOC2 compliance is blocking procurement\./gi, "Security certification is blocking procurement."],
+  [/Need more Android devices for testing\./gi, "Need more devices for testing."],
+  [/Latest Samsung devices unavailable\./gi, "Latest flagship devices unavailable."],
+  [/Need foldable Android devices\./gi, "Need newer device form factors."],
+  [/Need GitHub Actions integration\./gi, "Need CI pipeline integration."],
+  [/Jenkins pipeline support is missing\./gi, "Native build pipeline support is missing."],
   // Identity / auth vendors
   [/\b(?:Okta|Auth0|OneLogin|Ping\s*Identity|Azure\s*AD|Entra\s*ID|Active\s*Directory|JumpCloud)\b/gi, "a supported identity provider"],
   // Collaboration / SaaS brands
