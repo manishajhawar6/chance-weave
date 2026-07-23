@@ -2586,29 +2586,15 @@ function DetailScreen({
             </div>
           </div>
 
-          <div className="rounded-lg border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-4">
-            <div className="mb-3 flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-primary">
-                Priority recommendation
-              </span>
-            </div>
-            <div className="text-4xl font-semibold tabular-nums">{bd.total}</div>
-            <div className="mt-3 space-y-1 text-xs">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">AI customer signal</span>
-                <span className="font-mono">+{bd.ai}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Your strategic boost</span>
-                <span className="font-mono">+{bd.strategic}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Effort penalty</span>
-                <span className="font-mono">−{bd.effortPenalty}</span>
-              </div>
-            </div>
-          </div>
+          <PriorityLadder
+            ai={bd.ai}
+            strategic={bd.strategic}
+            effortPenalty={bd.effortPenalty}
+            total={bd.total}
+            hasStrategic={!!pm?.strategic_importance}
+            hasEffort={!!pm?.engineering_effort}
+            emphasize
+          />
         </div>
       </MemoSection>
 
