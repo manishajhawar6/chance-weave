@@ -2200,10 +2200,10 @@ function CompareScreen({
           </div>
           <div>
             <div className="text-xs font-semibold uppercase tracking-widest text-primary">
-              Priority recommendation
+              Priority
             </div>
             <div className="text-xs text-muted-foreground">
-              Emerges from both groups above — evidence is what carries this forward, not the
+              Emerges from both sides above. What carries this forward is the evidence, not the
               number.
             </div>
           </div>
