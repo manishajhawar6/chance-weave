@@ -7,6 +7,10 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // Hard-pin the Nitro build target to Netlify for self-hosted deploys.
+  // Inside the Lovable sandbox this override is ignored (LOVABLE_NITRO_PRESET
+  // pins Cloudflare), so the in-app preview/publish still targets Cloudflare.
+  nitro: { preset: "netlify" },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
