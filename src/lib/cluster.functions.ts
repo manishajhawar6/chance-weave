@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "./ai-gateway.server";
+import { createAiProvider, CLUSTER_MODEL } from "./ai-provider.server";
 
 const InputSchema = z.object({
   feedback: z.array(z.string()).min(1),
@@ -37,11 +37,15 @@ export type Theme = ClusterResult["themes"][number];
 export const clusterFeedback = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data }) => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) throw new Error("Missing LOVABLE_API_KEY");
+    const key = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    if (!key) {
+      throw new Error(
+        "Missing GOOGLE_GENERATIVE_AI_API_KEY. Add it to .env — get a key at https://aistudio.google.com/apikey",
+      );
+    }
 
-    const gateway = createLovableAiGatewayProvider(key);
-    const model = gateway("google/gemini-3-flash-preview");
+    const provider = createAiProvider(key);
+    const model = provider(CLUSTER_MODEL);
 
     const numbered = data.feedback
       .map((f, i) => `[${i}] ${f.replace(/\s+/g, " ").slice(0, 500)}`)

@@ -12,6 +12,7 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# LOVABLE_API_KEY must be set in the Netlify dashboard
+# GOOGLE_GENERATIVE_AI_API_KEY must be set in the Netlify dashboard
 # (Site settings → Environment variables), NOT committed here.
 # It is read at runtime inside the AI clustering server function.
+# Get a key at https://aistudio.google.com/apikey

@@ -16,6 +16,11 @@ dist-ssr
 .nitro
 *.local
 
+# Env / secrets (.env.example is committed, real keys are not)
+.env
+.env.*
+!.env.example
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
