@@ -1,46 +1,47 @@
-# Add a public MCP server to Prism
+# Deploy Prism to Netlify
 
 ## Goal
+Self-host the existing Prism app on Netlify instead of Cloudflare Workers. No feature changes — only build/deploy retargeting. (MCP integration is paused per your choice.)
 
-Expose Prism's core capability — turning customer conversations into ranked, evidence-backed product opportunities — as an MCP server that any AI assistant (ChatGPT, Claude, Cursor) can connect to. Per your decision, this is a **public, no-auth** server: anyone with the URL can call the tools.
+## Context (verified)
+- Build is driven by `@lovable.dev/vite-tanstack-config`. It defaults Nitro to the `cloudflare-module` preset, but exposes a `nitro: { preset }` override that applies **outside the Lovable sandbox**. Inside the sandbox, `LOVABLE_NITRO_PRESET` pins Cloudflare and ignores the override — so the in-app preview/publish keeps targeting Cloudflare, untouched.
+- `nitro` (3.0.260603-beta) is installed and ships a `netlify` preset. That preset outputs static assets to `dist/` and an SSR serverless function to `.netlify/functions-internal/server/`. Netlify auto-detects functions there; the generated function config (`path: "/*"`, `preferStatic: true`) routes non-static requests to SSR and serves prerendered assets directly.
+- `src/server.ts` is already runtime-agnostic: a plain `{ fetch }` Nitro entry that wraps the TanStack Start server entry. No Cloudflare-specific APIs — works on Netlify Node functions.
+- `LOVABLE_API_KEY` is read inside the cluster handler (`src/lib/cluster.functions.ts`), not at module scope. On Netlify Node functions, `process.env.LOVABLE_API_KEY` resolves from dashboard env vars. The AI SDK + global `fetch` are Node-compatible.
 
-The server reuses the existing clustering engine (`clusterFeedback` in `src/lib/cluster.functions.ts`), so MCP clients get the same ranked opportunities + scrubbed quotes the web UI produces.
+## Changes
 
-## What ships
+### 1. `vite.config.ts`
+Add `nitro: { preset: "netlify" }` to the existing `defineConfig(...)` options, above `tanstackStart`. This hard-pins Netlify for any build outside the sandbox (Netlify CI + local). The sandbox still forces Cloudflare, so Lovable preview/publish is unaffected.
 
-Three tools, all read-only (no database, no writes):
+```ts
+export default defineConfig({
+  nitro: { preset: "netlify" },
+  tanstackStart: {
+    server: { entry: "server" }, // keep the src/server.ts SSR error wrapper
+  },
+});
+```
 
-1. **`analyze_feedback`** — pass an array of customer conversation strings; returns themes + ranked opportunities (title, problem, customer demand, business impact, confidence, evidence indices, representative quote) + the scrubbed feedback. This is the main tool.
-2. **`run_demo_analysis`** — no input; runs the built-in synthetic B2B SaaS demo dataset (`DEMO_FEEDBACK`) through the same engine. Lets a client see what Prism produces without supplying data.
-3. **`list_demo_conversations`** — no input; returns the raw demo conversation list so a client can inspect the sample data shape/content.
+### 2. Create `netlify.toml`
+Minimal, deterministic config. No `[functions]` override (Nitro's `.netlify/functions-internal/` is auto-detected). No secret values committed.
 
-`analyze_feedback` and `run_demo_analysis` invoke the existing `clusterFeedback` server function directly (same worker, local call), so env/`LOVABLE_API_KEY` reading and vendor-scrubbing are inherited for free.
+```toml
+[build]
+  command = "npm run build"
+  publish = "dist"
 
-## Files
+[build.environment]
+  NODE_VERSION = "20"
+```
 
-- `bunfig.toml` — `@lovable.dev/mcp-js` already excluded from the 24h guard; no change.
-- `src/lib/mcp/tools/analyze-feedback.ts` — `analyze_feedback` tool. Validates input (1–200 strings, non-empty, length-capped); calls `clusterFeedback`; returns JSON content.
-- `src/lib/mcp/tools/run-demo-analysis.ts` — `run_demo_analysis` tool; calls `clusterFeedback` with `DEMO_FEEDBACK`.
-- `src/lib/mcp/tools/list-demo-conversations.ts` — `list_demo_conversations` tool; returns `DEMO_FEEDBACK`.
-- `src/lib/mcp/index.ts` — `defineMcp` entry. `name: "prism"`, `title: "Prism"`, `version: "0.1.0"`, `instructions` describing the server. No `auth` block (public). Tools imported and listed. No env reads or I/O at module scope.
-- `vite.config.ts` — add `mcpPlugin()` to the plugins via `defineConfig({ vite: { plugins: [mcpPlugin()] } })` (keeps existing `@lovable.dev/vite-tanstack-config` plugins intact).
-- Favicon — `/favicon.svg` already exists; no change.
+### 3. `LOVABLE_API_KEY` (manual, not in code)
+Set `LOVABLE_API_KEY` in the Netlify dashboard under **Site settings → Environment variables**. It is the only secret required; without it, the "Run Demo" / upload analysis fails with `Missing LOVABLE_API_KEY`. Do **not** put it in a committed `.env`.
 
-## Key implementation notes
+## What stays the same
+- `src/server.ts`, `src/lib/*`, all product code — no edits.
+- Lovable in-editor preview and Publish still deploy to Cloudflare (the override is sandbox-ignored).
 
-- **Public = no auth block** in `defineMcp`. No Supabase, no OAuth, no consent route. The `/mcp` endpoint and its OAuth-metadata companion route are generated by `mcpPlugin()` and reachable anonymously.
-- **Env safety**: `clusterFeedback` already reads `LOVABLE_API_KEY` inside its own `.handler()`. The tool files only call it — they do not touch env themselves, keeping `src/lib/mcp/index.ts` import-safe for build-time manifest extraction and cold start.
-- **Long-running tool warning**: `clusterFeedback` is a single Gemini Flash call (~5–15s). That sits within MCP's synchronous request/response window for typical inputs; very large feedback sets could approach the timeout. `analyze_feedback` caps input at 200 conversations and truncates per-conversation length (the prompt already slices to 500 chars) to keep it bounded.
-- **Routes are auto-generated**: do not hand-write `src/routes/mcp.ts` or the `/.well-known/...` companion routes — `mcpPlugin()` owns them.
-- **Validation after edits**: run `app_mcp_server--extract_mcp_manifest` once the entry is saved, to regenerate `.lovable/mcp/manifest.json` and surface any entry error.
-
-## Acceptance
-
-- `bun add @lovable.dev/mcp-js zod` installs (zod already present).
-- Build succeeds with `mcpPlugin()` active and the generated `/mcp` route present.
-- Manifest extraction runs clean.
-- `run_demo_analysis` returns ranked opportunities matching the web UI's demo output.
-
-## After publish
-
-Clients can only reach the MCP server once the app is published. I'll surface the publish action after setup.
+## Verification after approval
+- Run `npm run build` locally → confirm it emits `dist/` (assets) and `.netlify/functions-internal/server/` (function). (Cannot reproduce the Netlify preset inside the Lovable sandbox, which forces Cloudflare — this check runs in your local/Netlify CI.)
+- Push to the connected GitHub repo; connect the repo to Netlify; set `LOVABLE_API_KEY`; deploy. Confirm the homepage renders (SSR) and "Run Demo" clustering returns results.
