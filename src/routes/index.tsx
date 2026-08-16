@@ -43,6 +43,7 @@ import {
 } from "@/lib/cluster.functions";
 import { DEMO_FEEDBACK } from "@/lib/demo-feedback";
 import { DecisionSummaryDialog } from "@/components/decision-summary";
+import { PriorityInfo, DemoNotice } from "@/components/priority-explainer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -479,6 +480,7 @@ function UploadScreen({
         <p className="mt-4 text-xs text-muted-foreground">
           Feedback column auto-detected · Up to 200 rows · About 15 seconds
         </p>
+        <DemoNotice className="mt-2" />
       </section>
 
       {/* 2 — AI reasoning animation */}
@@ -690,6 +692,9 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
         Reading {feedback.length} customer conversations. Prism surfaces individual voices, groups
         the recurring ones, and names the underlying problem. You take it from there.
       </p>
+      <DemoNotice variant="chip" className="mt-3" />
+
+
 
       <AIReasoningPipeline stage={pipelineStage} className="mt-8" />
 
@@ -1360,6 +1365,11 @@ function PriorityLadder({
             <div className="text-[11px] text-muted-foreground">
               Recomputes as you adjust inputs
             </div>
+            <PriorityInfo
+              label
+              breakdown={{ ai, strategic, effortPenalty, total }}
+              className="mt-1.5 text-[11px]"
+            />
           </div>
           <AnimatedNumber
             key={total}
@@ -1494,6 +1504,7 @@ function OpportunitiesScreen({
             {result.opportunities.length} recurring opportunity areas. Open a row to read the
             evidence and add your side of the call — AI recommends, you decide.
           </p>
+          <DemoNotice variant="chip" className="mt-3" />
         </div>
         <Button variant="ghost" size="sm" onClick={onReset}>
           <Upload className="mr-2 h-4 w-4" />
@@ -1502,7 +1513,7 @@ function OpportunitiesScreen({
       </div>
 
       {result.themes.length > 0 && (
-        <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Themes
           </span>
@@ -1518,13 +1529,16 @@ function OpportunitiesScreen({
         </div>
       )}
 
-      <div className="mt-12">
-        <div className={cn("grid items-center gap-4 border-b border-border/50 pb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground", cols)}>
+      <div className="mt-8">
+        <div className={cn("grid items-center gap-x-3 border-b border-border/50 pb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground", cols)}>
           <div />
           <div>Opportunity</div>
           <div>Demand</div>
           <div>Impact</div>
-          <div className="text-right">Recommended priority</div>
+          <div className="flex items-center justify-end gap-1.5 text-right">
+            <span>Recommended priority</span>
+            <PriorityInfo className="normal-case tracking-normal" />
+          </div>
           <div />
         </div>
         {rows.map(({ op, i, priority }) => {
@@ -1546,7 +1560,7 @@ function OpportunitiesScreen({
                   }
                 }}
                 className={cn(
-                  "group grid cursor-pointer items-center gap-4 py-6 transition-colors",
+                  "group grid cursor-pointer items-center gap-x-3 py-3.5 transition-colors",
                   cols,
                   selected.has(i) ? "bg-primary/[0.035]" : "hover:bg-muted/25",
                 )}
@@ -1575,10 +1589,10 @@ function OpportunitiesScreen({
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 line-clamp-2 max-w-[52ch] text-[13px] leading-relaxed text-muted-foreground">
+                  <div className="mt-0.5 line-clamp-1 max-w-[56ch] text-[13px] leading-relaxed text-muted-foreground">
                     {op.problem}
                   </div>
-                  <div className="mt-1.5 text-[11px] text-muted-foreground/85">
+                  <div className="mt-1 text-[11px] text-muted-foreground/85">
                     Supported by {op.evidence_indices.length} conversations
                   </div>
                 </div>
@@ -1588,7 +1602,7 @@ function OpportunitiesScreen({
                     {op.business_impact}
                   </span>
                 </div>
-                <div className="text-right text-[32px] font-bold leading-none tracking-tight tabular-nums">
+                <div className="text-right text-[26px] font-bold leading-none tracking-tight tabular-nums">
                   <AnimatedNumber value={priority} />
                 </div>
                 <div
@@ -1626,14 +1640,18 @@ function OpportunitiesScreen({
         })}
       </div>
 
-      <p className="mt-6 max-w-2xl text-[12px] text-muted-foreground">
-        Recommended priority reflects customer demand and supporting evidence (AI) balanced against
-        your strategic importance and engineering effort (you). AI recommends — you decide.
-      </p>
+      <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <p className="max-w-2xl text-[12px] text-muted-foreground">
+          Recommended priority reflects customer demand and supporting evidence (AI) balanced
+          against your strategic importance and engineering effort (you). AI recommends — you
+          decide.
+        </p>
+        <PriorityInfo label className="text-[11px]" />
+      </div>
 
-      <div className="sticky bottom-6 mt-10 flex justify-center">
-        <div className={cn("flex items-center gap-3 rounded-full border border-border bg-card/95 px-4 py-2 shadow-elevate-2 backdrop-blur transition-opacity", selected.size === 0 && "opacity-60")}>
-          <span className="text-xs text-muted-foreground">
+      <div className="pointer-events-none sticky bottom-4 mt-4 flex justify-center">
+        <div className={cn("pointer-events-auto flex items-center gap-3 rounded-full border border-border/70 bg-card/90 px-3.5 py-1.5 shadow-elevate-1 backdrop-blur transition-opacity", selected.size === 0 && "opacity-50")}>
+          <span className="text-[11px] text-muted-foreground">
             {selected.size === 0 ? "Select two or more to compare" : `${selected.size} selected`}
           </span>
           <Button size="sm" disabled={selected.size < 2} onClick={() => onCompare([...selected].sort((a, b) => a - b))}>
@@ -2419,12 +2437,45 @@ function DetailScreen({
       <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
         {op.problem}
       </p>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         {op.recurring_themes.map((t) => (
           <Badge key={t} variant="secondary" className="text-xs">
             <Layers className="mr-1 h-3 w-3" />
             {t}
           </Badge>
+        ))}
+        <DemoNotice variant="chip" />
+      </div>
+
+      {/* How this memo is assembled — makes the AI ▸ you ▸ priority chain explicit */}
+      <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-lg border border-border/50 bg-surface-muted/40 px-3 py-2 text-[11px]">
+        {[
+          { tag: "AI", text: "Customer evidence" },
+          { tag: "AI", text: "Demand · impact · confidence" },
+          { tag: "You", text: "Strategic importance · engineering effort" },
+          { tag: null, text: "Recommended priority" },
+          { tag: null, text: "Your decision" },
+        ].map((step, i, arr) => (
+          <span key={step.text} className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5">
+              {step.tag && (
+                <span
+                  className={cn(
+                    "rounded-sm px-1 py-0.5 text-[9px] font-semibold uppercase tracking-widest",
+                    step.tag === "AI"
+                      ? "bg-primary/10 text-primary"
+                      : "border border-border/60 text-muted-foreground",
+                  )}
+                >
+                  {step.tag}
+                </span>
+              )}
+              <span className={cn(step.tag ? "text-muted-foreground" : "font-medium text-foreground")}>
+                {step.text}
+              </span>
+            </span>
+            {i < arr.length - 1 && <span className="text-muted-foreground/50">→</span>}
+          </span>
         ))}
       </div>
 
