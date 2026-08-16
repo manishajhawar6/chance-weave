@@ -43,6 +43,7 @@ import {
 } from "@/lib/cluster.functions";
 import { DEMO_FEEDBACK } from "@/lib/demo-feedback";
 import { DecisionSummaryDialog } from "@/components/decision-summary";
+import { PriorityInfo, DemoNotice } from "@/components/priority-explainer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
