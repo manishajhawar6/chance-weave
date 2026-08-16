@@ -692,6 +692,9 @@ function ProcessingScreen({ feedback }: { feedback: string[] }) {
         Reading {feedback.length} customer conversations. Prism surfaces individual voices, groups
         the recurring ones, and names the underlying problem. You take it from there.
       </p>
+      <DemoNotice variant="chip" className="mt-3" />
+
+
 
       <AIReasoningPipeline stage={pipelineStage} className="mt-8" />
 
