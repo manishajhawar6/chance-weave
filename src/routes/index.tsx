@@ -1581,10 +1581,10 @@ function OpportunitiesScreen({
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 line-clamp-2 max-w-[52ch] text-[13px] leading-relaxed text-muted-foreground">
+                  <div className="mt-0.5 line-clamp-1 max-w-[56ch] text-[13px] leading-relaxed text-muted-foreground">
                     {op.problem}
                   </div>
-                  <div className="mt-1.5 text-[11px] text-muted-foreground/85">
+                  <div className="mt-1 text-[11px] text-muted-foreground/85">
                     Supported by {op.evidence_indices.length} conversations
                   </div>
                 </div>
@@ -1594,7 +1594,7 @@ function OpportunitiesScreen({
                     {op.business_impact}
                   </span>
                 </div>
-                <div className="text-right text-[32px] font-bold leading-none tracking-tight tabular-nums">
+                <div className="text-right text-[26px] font-bold leading-none tracking-tight tabular-nums">
                   <AnimatedNumber value={priority} />
                 </div>
                 <div
