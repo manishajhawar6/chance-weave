@@ -1362,6 +1362,11 @@ function PriorityLadder({
             <div className="text-[11px] text-muted-foreground">
               Recomputes as you adjust inputs
             </div>
+            <PriorityInfo
+              label
+              breakdown={{ ai, strategic, effortPenalty, total }}
+              className="mt-1.5 text-[11px]"
+            />
           </div>
           <AnimatedNumber
             key={total}
