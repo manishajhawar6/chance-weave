@@ -480,6 +480,7 @@ function UploadScreen({
         <p className="mt-4 text-xs text-muted-foreground">
           Feedback column auto-detected · Up to 200 rows · About 15 seconds
         </p>
+        <DemoNotice className="mt-2" />
       </section>
 
       {/* 2 — AI reasoning animation */}
