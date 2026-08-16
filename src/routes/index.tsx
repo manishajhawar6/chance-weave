@@ -1496,6 +1496,7 @@ function OpportunitiesScreen({
             {result.opportunities.length} recurring opportunity areas. Open a row to read the
             evidence and add your side of the call — AI recommends, you decide.
           </p>
+          <DemoNotice variant="chip" className="mt-3" />
         </div>
         <Button variant="ghost" size="sm" onClick={onReset}>
           <Upload className="mr-2 h-4 w-4" />
