@@ -4,7 +4,7 @@ Working documentation for the codebase in this repository, written for continuin
 development **outside the Lovable editor**. Covers what the app does, how it is
 wired together, and exactly which parts are coupled to Lovable.
 
-> The root [README.md](README.md) is the original *design brief* (the prompt that
+> The root [README.md](README.md) is the original _design brief_ (the prompt that
 > produced this app), not a description of what was built. This file is the
 > description of what was built.
 
@@ -29,22 +29,22 @@ persistence — reloading the page resets all state.
 
 ## 2. Tech stack
 
-| Concern | Choice |
-| --- | --- |
-| Framework | [TanStack Start](https://tanstack.com/start) (SSR) on React 19 |
-| Router | TanStack Router, file-based (`src/routes/`) |
-| Build | Vite 8 via `@lovable.dev/vite-tanstack-config` |
-| Server runtime | Nitro 3 (beta), preset pinned to **Netlify** |
-| Styling | Tailwind CSS v4 (CSS-first `@theme`, no `tailwind.config.js`) |
-| Components | shadcn/ui (new-york style) + Radix primitives, in `src/components/ui/` |
-| Icons | lucide-react |
-| LLM | Vercel AI SDK v7 → `@ai-sdk/google` → **Google Gemini API** (direct) |
-| Model | `gemini-3-flash-preview` |
-| Validation | Zod v4 |
-| CSV | PapaParse |
-| Toasts | sonner |
-| Data fetching | TanStack Query (provider mounted; the app currently calls the server fn directly) |
-| Package manager | Bun (`bun.lock`, `bunfig.toml`) — but Netlify builds with `npm run build` |
+| Concern         | Choice                                                                            |
+| --------------- | --------------------------------------------------------------------------------- |
+| Framework       | [TanStack Start](https://tanstack.com/start) (SSR) on React 19                    |
+| Router          | TanStack Router, file-based (`src/routes/`)                                       |
+| Build           | Vite 8 via `@lovable.dev/vite-tanstack-config`                                    |
+| Server runtime  | Nitro 3 (beta), preset pinned to **Netlify**                                      |
+| Styling         | Tailwind CSS v4 (CSS-first `@theme`, no `tailwind.config.js`)                     |
+| Components      | shadcn/ui (new-york style) + Radix primitives, in `src/components/ui/`            |
+| Icons           | lucide-react                                                                      |
+| LLM             | Local deterministic demo pipeline — no external LLM or AI API                     |
+| Model           | None — deterministic local rules                                                  |
+| Validation      | Zod v4                                                                            |
+| CSV             | PapaParse                                                                         |
+| Toasts          | sonner                                                                            |
+| Data fetching   | TanStack Query (provider mounted; the app currently calls the server fn directly) |
+| Package manager | Bun (`bun.lock`, `bunfig.toml`) — but Netlify builds with `npm run build`         |
 
 ---
 
@@ -62,8 +62,7 @@ src/
 │   ├── decision-summary.tsx   Export dialog: one-pager as text / HTML / print-to-PDF
 │   └── ui/                    47 shadcn/ui primitives (mostly untouched)
 ├── lib/
-│   ├── cluster.functions.ts   ⭐ Server function: the LLM call, schema, prompt, scrubber
-│   ├── ai-provider.server.ts  Google Gemini provider factory + model id
+│   ├── cluster.functions.ts   ⭐ Server function: deterministic clustering, schema, and scrubber
 │   ├── demo-feedback.ts       40 synthetic customer quotes for the "Run demo" path
 │   ├── error-capture.ts       Out-of-band error recorder (see §7)
 │   ├── error-page.ts          Static HTML 500 page
@@ -118,7 +117,7 @@ Landing sections: hero → `#how-it-works` (`SignaturePipeline`) → `#workspace
 
 ### Screen 2 — Processing (`ProcessingScreen`)
 
-Shown while the real request is in flight. The animation is **scripted, not live** —
+Shown while the local clustering pipeline is running. The animation is **scripted, not live** —
 `CLUSTER_DEMO` ([src/routes/index.tsx:615](src/routes/index.tsx#L615)) is a hardcoded
 three-group storyboard advanced by an 850 ms `setInterval`. Each group cycles
 `queued → revealing → pausing → named` via `stageAt()`. It exists to make the wait
@@ -157,22 +156,30 @@ opened in a new window for Print → Save as PDF.
 
 ---
 
-## 5. The AI pipeline
+## 5. The local clustering pipeline
 
 `clusterFeedback` in [src/lib/cluster.functions.ts](src/lib/cluster.functions.ts) is a
-TanStack Start **server function** (`createServerFn({ method: "POST" })`) — it runs on
-the server only, so the API key is never shipped to the browser.
+TanStack Start **server function** (`createServerFn({ method: "POST" })`). It performs
+the demo's clustering and opportunity synthesis without calling an external LLM or
+AI provider.
+
+The important architectural change is that Prism is now **self-contained**: there is
+no Gemini dependency, no Google AI API key, and no external model invocation required
+to run the product.
 
 **Steps:**
 
 1. Validate input — `z.object({ feedback: z.array(z.string()).min(1) })`
-2. Read `process.env.GOOGLE_GENERATIVE_AI_API_KEY` (throws with a setup hint if absent)
-3. Number and truncate each item: `[i] <text>`, whitespace collapsed, **500 chars max**
-4. `generateText` with `Output.object({ schema: OpportunitySchema })` for structured output
-5. On `NoObjectGeneratedError`, retry once by `JSON.parse`-ing the raw text; if that
-   also fails → `"AI returned malformed output. Try again."`
-6. Run every AI-authored string **and** every input quote through `scrub()`
-7. Return `{ themes, opportunities, feedback }`
+2. Number and truncate each item: `[i] <text>`, whitespace collapsed, **500 chars max**
+3. Normalize the feedback into deterministic text features/keywords.
+4. Group feedback into the predefined/local opportunity patterns used by the demo.
+5. Build the structured `OpportunitySchema` output deterministically from the matched
+   feedback indices.
+6. Run every generated string and every input quote through `scrub()`.
+7. Return `{ themes, opportunities, feedback }`.
+
+There is no model call, retry-on-LLM-failure path, API key lookup, or external network
+dependency in this pipeline.
 
 **Output schema** — 3-8 themes, plus 3-8 opportunities each carrying:
 `title`, `problem`, `customer_demand` (0-100), `business_impact`
@@ -181,26 +188,31 @@ the server only, so the API key is never shipped to the browser.
 `representative_quote_index` — the indices being what links an opportunity back to
 the original rows.
 
-### The prompt
+### Local opportunity rules
 
-A long instruction block enforcing two things that matter to the product:
+The prototype uses deterministic rules/patterns rather than an LLM prompt. The rules
+identify recurring concepts in customer feedback and map them to portfolio-safe
+problem statements and opportunity records.
+
+This preserves the product principle:
 
 - **Problem framing, never solutions** — "Enterprise security & governance gaps",
   not "Add SSO".
 - **Portfolio-safe language** — no vendor names, protocols, certifications, device
-  categories, or tooling brands anywhere in the output.
-
-It also explicitly forbids the model from estimating effort, strategic importance,
-or revenue ("those are the PM's job"), which is the product principle encoded in
-the prompt itself.
+  categories, or tooling brands in generated output.
+- **AI/PM separation remains intact** — customer-derived fields are generated by the
+  local pipeline, while strategic importance, engineering effort, revenue opportunity,
+  and the final decision remain PM inputs.
 
 ### The scrubber
 
-Because the model still leaks brand names occasionally, `scrub()` applies a
-deterministic regex pass (`VENDOR_REPLACEMENTS`) over every text field: identity
-vendors → "a supported identity provider", SSO → "federated login", SOC 2 →
-"standard security certification", Android/iOS → "the devices customers use", and
-so on.
+`scrub()` applies a deterministic regex pass (`VENDOR_REPLACEMENTS`) over every
+generated text field and every input quote: identity vendors → "a supported identity
+provider", SSO → "federated login", SOC 2 → "standard security certification",
+Android/iOS → "the devices customers use", and so on.
+
+Because there is no external model, the scrubber is now a deterministic safety and
+normalization layer rather than a cleanup step for LLM output.
 
 ⚠️ **Known wart:** the top of that list contains ~13 literal sentence-level fixes
 patching grammar that earlier replacement passes garbled (e.g. `"Need automated user
@@ -223,7 +235,7 @@ effortPenalty = engineering_effort × 3          (PM, 0 if unset)
 total         = max(0, ai + strategic − effortPenalty)
 ```
 
-Rendered by `PriorityLadder` as stacked rungs so the PM can *see* their own judgment
+Rendered by `PriorityLadder` as stacked rungs so the PM can _see_ their own judgment
 moving the number, with `useAnimatedNumber` tweening the total (easeOutCubic, 380 ms).
 
 `suggestDecision(priority, confidence)` proposes — never applies — a decision:
@@ -278,15 +290,18 @@ npm run lint       # eslint
 npm run format     # prettier
 ```
 
-**Required environment variable:** `GOOGLE_GENERATIVE_AI_API_KEY` (get one at
-<https://aistudio.google.com/apikey>). Without it the app boots and the landing page
-renders, but clustering throws. Copy `.env.example` → `.env` and fill it in; `.env`
-is gitignored.
+**Environment variables:** None are required for the clustering pipeline. Prism no
+longer requires `GOOGLE_GENERATIVE_AI_API_KEY`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`, or
+any other external AI provider key.
+
+The application can be run and deployed with the local deterministic pipeline only.
+The landing page, CSV upload, clustering, opportunity generation, prioritization,
+comparison, detail views, and export flow do not depend on an external AI API.
 
 **Netlify** ([netlify.toml](netlify.toml)): build `npm run build`, publish `dist`,
 Node 20. The `netlify` Nitro preset emits an SSR function under
-`.netlify/functions-internal/` which Netlify auto-detects. `GOOGLE_GENERATIVE_AI_API_KEY`
-must be set in Site settings → Environment variables.
+`.netlify/functions-internal/` which Netlify auto-detects. No Gemini/Google AI
+environment variable needs to be configured in Site settings.
 
 Note the mismatch: the repo carries `bun.lock` (and `bunfig.toml` pins a 24-hour
 supply-chain guard, `minimumReleaseAge`), but Netlify and the README both use npm.
@@ -301,36 +316,37 @@ This project was generated by [Lovable](https://lovable.dev) (project
 `db1cc8af-25e2-49ef-8151-8bd800798dc2`). Below is every coupling, and what it costs
 to leave. **Only one is a genuine blocker.**
 
-| Coupling | Where | Verdict |
-| --- | --- | --- |
-| ~~**AI gateway + API key**~~ | ~~`ai-gateway.server.ts`~~ | ✅ **Done.** Replaced with Google Gemini direct (`ai-provider.server.ts`). Same model id, no gateway. |
-| **Build config** | `vite.config.ts` → `@lovable.dev/vite-tanstack-config` | 🟡 Public on npm (pinned 2.13.1, latest 2.14.0), so it keeps building. But it's an opaque bundle of plugins — TanStack devtools, tanstackStart, viteReact, tailwindcss, tsConfigPaths, Nitro, env injection, `@` alias, dedupe, sandbox detection. Inlining it is a chunk of work. |
-| **Error telemetry** | `lovable-error-reporting.ts`, called in `__root.tsx` | 🟢 Inert outside the editor — every call is optional-chained against `window.__lovableEvents` / `window.__lovableReportRuntimeError`, which only exist in the Lovable preview. Delete or repoint at your own error tracker. |
-| **`AGENTS.md`** | root | 🟢 Only says "don't rewrite published git history because it desyncs Lovable." Once detached, that constraint is void. |
-| **`.lovable/`** | root | 🟢 Editor metadata (`project.json` template revision) plus one saved plan doc. Safe to delete. |
-| **`bunfig.toml` excludes** | root | 🟢 `minimumReleaseAgeExcludes` lists six `@lovable.dev/*` packages. Prune to whichever you still install. |
-| **Nitro preset** | `vite.config.ts` | 🟢 Already pinned to `netlify` for self-hosting; the comment notes Lovable's sandbox overrides it to Cloudflare via `LOVABLE_NITRO_PRESET`. Outside the sandbox, Netlify wins — nothing to change. |
+| Coupling                   | Where                                                  | Verdict                                                                                                                                                                                                                                                                            |
+| -------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **AI provider / API key**  | `cluster.functions.ts`                                 | 🟢 **Removed.** Clustering is deterministic and local; no external AI provider or API key is required.                                                                                                                                                                             |
+| **Build config**           | `vite.config.ts` → `@lovable.dev/vite-tanstack-config` | 🟡 Public on npm (pinned 2.13.1, latest 2.14.0), so it keeps building. But it's an opaque bundle of plugins — TanStack devtools, tanstackStart, viteReact, tailwindcss, tsConfigPaths, Nitro, env injection, `@` alias, dedupe, sandbox detection. Inlining it is a chunk of work. |
+| **Error telemetry**        | `lovable-error-reporting.ts`, called in `__root.tsx`   | 🟢 Inert outside the editor — every call is optional-chained against `window.__lovableEvents` / `window.__lovableReportRuntimeError`, which only exist in the Lovable preview. Delete or repoint at your own error tracker.                                                        |
+| **`AGENTS.md`**            | root                                                   | 🟢 Only says "don't rewrite published git history because it desyncs Lovable." Once detached, that constraint is void.                                                                                                                                                             |
+| **`.lovable/`**            | root                                                   | 🟢 Editor metadata (`project.json` template revision) plus one saved plan doc. Safe to delete.                                                                                                                                                                                     |
+| **`bunfig.toml` excludes** | root                                                   | 🟢 `minimumReleaseAgeExcludes` lists six `@lovable.dev/*` packages. Prune to whichever you still install.                                                                                                                                                                          |
+| **Nitro preset**           | `vite.config.ts`                                       | 🟢 Already pinned to `netlify` for self-hosting; the comment notes Lovable's sandbox overrides it to Cloudflare via `LOVABLE_NITRO_PRESET`. Outside the sandbox, Netlify wins — nothing to change.                                                                                 |
 
 ### Suggested order of operations
 
-1. **Replace the AI gateway first** — this is the only thing that actually breaks.
-   `ai-gateway.server.ts` is 12 lines and returns an AI SDK provider, so swapping in
-   Anthropic (`@ai-sdk/anthropic`), OpenAI, or Google Gemini directly is a
-   one-file change plus a new model id in `cluster.functions.ts`. Keep
-   `supportsStructuredOutputs` behavior in mind — the comment there warns that
-   without it, `Output.object` validation fails against free-form JSON.
-2. **Verify a clean build off-platform** — `npm install && npm run build` with no
-   Lovable env vars present, then deploy to Netlify with the new provider key.
-3. **Settle the package manager** — bun or npm, and commit the matching lockfile.
-4. **Then clean up cosmetics** — drop `.lovable/`, `AGENTS.md`, the
-   `lovable-error-reporting.ts` call in `__root.tsx`, and the unused `bunfig.toml`
-   excludes.
-5. **Optionally un-vendor the build config** — replace
+1. **Keep the local deterministic pipeline as the only clustering path** — there is no
+   Gemini provider/server integration, Google AI SDK, model configuration, or AI provider
+   environment variable. Keep `cluster.functions.ts` as the deterministic clustering
+   entry point.
+2. **Replace AI-dependent behavior with deterministic local rules** — preserve the
+   existing `OpportunitySchema` and downstream UI contract so the five-screen
+   experience does not need to change.
+3. **Verify a clean build off-platform** — run `npm install && npm run build` with no
+   Lovable or AI provider secrets present.
+4. **Verify the complete demo flow** — test Run demo, CSV upload, processing,
+   opportunities, compare, detail, PM inputs, decisions, and export.
+5. **Settle the package manager** — bun or npm, and commit the matching lockfile.
+6. **Then clean up cosmetics** — drop `.lovable/`, `AGENTS.md`, the
+   `lovable-error-reporting.ts` call in `__root.tsx`, and unused `bunfig.toml`
+   excludes if they are no longer needed.
+7. **Optionally un-vendor the build config** — replace
    `@lovable.dev/vite-tanstack-config` with an explicit plugin list. Do this last;
-   it's the highest-risk step and buys the least. The file's own header warns that
-   re-adding those plugins manually breaks the app with duplicates, so port them
-   deliberately rather than additively.
-6. **Rewrite `README.md`** — it is currently the generation prompt, which will
+   it's the highest-risk step and buys the least.
+8. **Rewrite `README.md`** — it is currently the generation prompt, which will
    confuse the next person who clones this.
 
 ### Known rough edges worth addressing while you're in there
