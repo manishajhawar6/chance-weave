@@ -7,9 +7,11 @@ import { cn } from "@/lib/utils";
 // sync with priorityBreakdown() in src/routes/index.tsx.
 export function PriorityInfo({
   breakdown,
+  label = false,
   className,
 }: {
   breakdown?: { ai: number; strategic: number; effortPenalty: number; total: number };
+  label?: boolean;
   className?: string;
 }) {
   return (
@@ -23,7 +25,7 @@ export function PriorityInfo({
         )}
       >
         <Info className="h-3 w-3" />
-        <span className="sr-only sm:not-sr-only">How is priority calculated?</span>
+        <span className={label ? undefined : "sr-only"}>How is priority calculated?</span>
       </PopoverTrigger>
       <PopoverContent
         align="end"
