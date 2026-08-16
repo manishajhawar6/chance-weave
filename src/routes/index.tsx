@@ -2434,12 +2434,45 @@ function DetailScreen({
       <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">
         {op.problem}
       </p>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-4 flex flex-wrap items-center gap-2">
         {op.recurring_themes.map((t) => (
           <Badge key={t} variant="secondary" className="text-xs">
             <Layers className="mr-1 h-3 w-3" />
             {t}
           </Badge>
+        ))}
+        <DemoNotice variant="chip" />
+      </div>
+
+      {/* How this memo is assembled — makes the AI ▸ you ▸ priority chain explicit */}
+      <div className="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-lg border border-border/50 bg-surface-muted/40 px-3 py-2 text-[11px]">
+        {[
+          { tag: "AI", text: "Customer evidence" },
+          { tag: "AI", text: "Demand · impact · confidence" },
+          { tag: "You", text: "Strategic importance · engineering effort" },
+          { tag: null, text: "Recommended priority" },
+          { tag: null, text: "Your decision" },
+        ].map((step, i, arr) => (
+          <span key={step.text} className="flex items-center gap-2">
+            <span className="flex items-center gap-1.5">
+              {step.tag && (
+                <span
+                  className={cn(
+                    "rounded-sm px-1 py-0.5 text-[9px] font-semibold uppercase tracking-widest",
+                    step.tag === "AI"
+                      ? "bg-primary/10 text-primary"
+                      : "border border-border/60 text-muted-foreground",
+                  )}
+                >
+                  {step.tag}
+                </span>
+              )}
+              <span className={cn(step.tag ? "text-muted-foreground" : "font-medium text-foreground")}>
+                {step.text}
+              </span>
+            </span>
+            {i < arr.length - 1 && <span className="text-muted-foreground/50">→</span>}
+          </span>
         ))}
       </div>
 
