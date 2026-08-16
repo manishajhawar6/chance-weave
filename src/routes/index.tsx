@@ -1552,7 +1552,7 @@ function OpportunitiesScreen({
                   }
                 }}
                 className={cn(
-                  "group grid cursor-pointer items-center gap-4 py-6 transition-colors",
+                  "group grid cursor-pointer items-center gap-x-3 py-3.5 transition-colors",
                   cols,
                   selected.has(i) ? "bg-primary/[0.035]" : "hover:bg-muted/25",
                 )}
