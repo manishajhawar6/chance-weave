@@ -1505,7 +1505,7 @@ function OpportunitiesScreen({
       </div>
 
       {result.themes.length > 0 && (
-        <div className="mt-10 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <div className="mt-7 flex flex-wrap items-center gap-x-3 gap-y-2">
           <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Themes
           </span>
@@ -1521,13 +1521,16 @@ function OpportunitiesScreen({
         </div>
       )}
 
-      <div className="mt-12">
-        <div className={cn("grid items-center gap-4 border-b border-border/50 pb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground", cols)}>
+      <div className="mt-8">
+        <div className={cn("grid items-center gap-x-3 border-b border-border/50 pb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground", cols)}>
           <div />
           <div>Opportunity</div>
           <div>Demand</div>
           <div>Impact</div>
-          <div className="text-right">Recommended priority</div>
+          <div className="flex items-center justify-end gap-1.5 text-right">
+            <span>Recommended priority</span>
+            <PriorityInfo className="normal-case tracking-normal" />
+          </div>
           <div />
         </div>
         {rows.map(({ op, i, priority }) => {
