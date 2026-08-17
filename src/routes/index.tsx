@@ -61,15 +61,15 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "AI reads customer conversations, surfaces opportunities with evidence, and hands the decision to the PM. Built for product managers who own the call.",
+          "Prism turns scattered customer conversations into clear product opportunities, evidence-backed reasoning, and confident prioritization decisions.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Prism — Confident product decisions from customer conversations" },
+      { name: "twitter:title", content: "Prism — Turn customer conversations into confident product decisions" },
       {
         name: "twitter:description",
         content:
-          "Scattered feedback → AI reasoning → clear opportunities → confident prioritization. AI synthesizes; the PM decides.",
+          "Prism turns scattered customer conversations into clear product opportunities, evidence-backed reasoning, and confident prioritization decisions.",
       },
     ],
   }),
