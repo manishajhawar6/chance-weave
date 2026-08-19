@@ -1,11 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
-import { generateText, Output, NoObjectGeneratedError } from "ai";
+import { streamText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
 const InputSchema = z.object({
   feedback: z.array(z.string()).min(1),
 });
+
+const ImpactSchema = z.preprocess(
+  (v) => (typeof v === "string" ? v.trim().toLowerCase() : v),
+  z.enum(["low", "medium", "high", "critical"]).catch("medium"),
+);
 
 const OpportunitySchema = z.object({
   themes: z.array(
@@ -19,7 +24,7 @@ const OpportunitySchema = z.object({
       title: z.string(),
       problem: z.string(),
       customer_demand: z.number(),
-      business_impact: z.enum(["low", "medium", "high", "critical"]),
+      business_impact: ImpactSchema,
       business_impact_rationale: z.string(),
       confidence: z.number(),
       confidence_rationale: z.string(),
@@ -30,9 +35,66 @@ const OpportunitySchema = z.object({
   ),
 });
 
+// Tolerant version used to repair partially-conforming model output.
+const LenientSchema = z.object({
+  themes: z
+    .array(
+      z.object({
+        name: z.string().catch(""),
+        description: z.string().catch(""),
+      }),
+    )
+    .catch([]),
+  opportunities: z
+    .array(
+      z.object({
+        title: z.string().catch("Untitled opportunity"),
+        problem: z.string().catch(""),
+        customer_demand: z.coerce.number().catch(50),
+        business_impact: ImpactSchema,
+        business_impact_rationale: z.string().catch(""),
+        confidence: z.coerce.number().catch(50),
+        confidence_rationale: z.string().catch(""),
+        recurring_themes: z.array(z.string()).catch([]),
+        evidence_indices: z.array(z.coerce.number()).catch([]),
+        representative_quote_index: z.coerce.number().catch(0),
+      }),
+    )
+    .catch([]),
+});
+
 export type ClusterResult = z.infer<typeof OpportunitySchema>;
 export type Opportunity = ClusterResult["opportunities"][number];
 export type Theme = ClusterResult["themes"][number];
+
+// Models sometimes wrap JSON in prose or code fences; pull out the object.
+function extractJson(text: string | undefined): unknown {
+  if (!text) return undefined;
+  const cleaned = text.replace(/```(?:json)?/gi, "").trim();
+  const candidates = [cleaned];
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start !== -1 && end > start) candidates.push(cleaned.slice(start, end + 1));
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // try next candidate
+    }
+  }
+  return undefined;
+}
+
+function repair(text: string | undefined): ClusterResult | undefined {
+  const json = extractJson(text);
+  if (!json) return undefined;
+  const parsed = LenientSchema.safeParse(json);
+  if (!parsed.success) return undefined;
+  const result = parsed.data as ClusterResult;
+  if (result.opportunities.length === 0) return undefined;
+  return result;
+}
+
 
 export const clusterFeedback = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => InputSchema.parse(input))
@@ -80,25 +142,42 @@ Rules:
 Feedback:
 ${numbered}`;
 
+    const finish = (result: ClusterResult) => ({
+      ...sanitizeResult(result),
+      feedback: data.feedback.map(scrub),
+    });
+
+    // Attempt 1: schema-guided generation (streamed so long runs aren't severed).
     try {
-      const { output } = await generateText({
+      const stream = streamText({
         model,
         prompt,
         output: Output.object({ schema: OpportunitySchema }),
       });
-      return { ...sanitizeResult(output), feedback: data.feedback.map(scrub) };
+      return finish((await stream.output) as ClusterResult);
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error)) {
-        try {
-          const parsed = OpportunitySchema.parse(JSON.parse(error.text ?? "{}"));
-          return { ...sanitizeResult(parsed), feedback: data.feedback.map(scrub) };
-        } catch {
-          throw new Error("AI returned malformed output. Try again.");
-        }
+        const repaired = repair(error.text);
+        if (repaired) return finish(repaired);
+      } else {
+        throw error;
       }
-      throw error;
     }
+
+    // Attempt 2: plain JSON generation, then repair-parse.
+    const retry = streamText({
+      model,
+      prompt: `${prompt}
+
+Respond with raw JSON only — no prose, no code fences. Shape:
+{"themes":[{"name":"","description":""}],"opportunities":[{"title":"","problem":"","customer_demand":0,"business_impact":"low|medium|high|critical","business_impact_rationale":"","confidence":0,"confidence_rationale":"","recurring_themes":[""],"evidence_indices":[0],"representative_quote_index":0}]}`,
+    });
+    const repaired = repair(await retry.text);
+    if (repaired) return finish(repaired);
+
+    throw new Error("The analysis came back incomplete. Please try again.");
   });
+
 
 // Deterministic post-processing: strip vendor / protocol / device / tooling
 // names from every AI-authored text field so the demo stays portfolio-safe
